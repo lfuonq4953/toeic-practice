@@ -1,0 +1,3 @@
+STIX Two Math, STIX Two Text — © 2001–2021 The STIX Fonts Project Authors (https://github.com/stipub/stixfonts)
+Phát hành theo SIL Open Font License, Version 1.1 — https://openfontlicense.org
+Các file .woff2 lấy từ gói @fontsource/stix-two-math và @fontsource/stix-two-text.

@@ -7,9 +7,9 @@
   --ok:#147a52; --ok-soft:#e1f3ea; --bad:#c03a2b; --bad-soft:#fbe7e3; --warn:#a95f00; --warn-soft:#fbefd6;
   --shadow:0 1px 2px rgba(24,32,45,.05),0 8px 24px -12px rgba(24,32,45,.18);
   --shadow-lg:0 2px 4px rgba(24,32,45,.06),0 24px 48px -20px rgba(24,32,45,.3);
-  --sans:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
-  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
-  --serif:'Source Serif 4',Georgia,'Times New Roman',serif;
+  --sans:'TOEIC STIX','STIX Two Math','STIX Two Text','Times New Roman',Georgia,serif;
+  --mono:'TOEIC STIX','STIX Two Math','STIX Two Text','Times New Roman',Georgia,serif;
+  --serif:'TOEIC STIX','STIX Two Math','STIX Two Text','Times New Roman',Georgia,serif;
   --r:14px; --r-sm:10px; --hdr:120px;
   color-scheme:light;
 }
@@ -28,7 +28,7 @@
 
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-padding-top:calc(var(--hdr) + 12px)}
-body{margin:0;background:var(--bg);color:var(--ink);font:400 1rem/1.6 var(--sans);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;min-height:100vh}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1.0625rem/1.6 var(--sans);font-variant-numeric:lining-nums;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;min-height:100vh}
 button{font:inherit;color:inherit;cursor:pointer}
 a{color:var(--accent)}
 svg{flex:none}
@@ -156,6 +156,25 @@ kbd{font:500 .7rem var(--mono);border:1px solid currentColor;border-radius:4px;p
 .pcard .pv{color:var(--ink2);font-size:.82rem}
 .pcard .pm{display:flex;justify-content:space-between;align-items:center;margin:.6rem 0 .3rem;font-size:.78rem;color:var(--ink2)}
 .pcard.full .mini i{background:var(--ok)}
+
+/* bộ luyện theo Part */
+.ptabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,9.5rem),1fr));gap:.5rem}
+.ptab{display:grid;gap:.1rem;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.6rem .85rem;color:var(--ink2)}
+.ptab b{font-size:1rem;color:var(--ink)}
+.ptab small{font-size:.78rem}
+.ptab:hover{border-color:var(--ink3)}
+.ptab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:color-mix(in srgb,var(--bg) 75%,transparent)}
+.ptab[aria-selected="true"] b{color:var(--bg)}
+.sets{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,11rem),1fr));gap:.7rem}
+.scard{display:grid;gap:.15rem;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:.85rem 1rem;box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
+.scard:hover{border-color:var(--accent);transform:translateY(-1px)}
+.scard .sn{font-weight:700;font-size:1.08rem}
+.scard .sm{font-size:.8rem;color:var(--ink3)}
+.scard .st{font-size:.8rem;font-weight:600;color:var(--ink2);margin:.35rem 0 .3rem}
+.scard .st.done{color:var(--ok)} .scard .st.doing{color:var(--warn)} .scard .st.prac{color:var(--accent)}
+.scard.done{border-color:color-mix(in srgb,var(--ok) 40%,var(--line))}
+.scard.done .mini i{background:var(--ok)} .scard.doing .mini i{background:var(--warn)}
+.scores.two{grid-template-columns:1.3fr 1fr}
 
 /* ---------- header khi làm bài ---------- */
 .hdr{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}

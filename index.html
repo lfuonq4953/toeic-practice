@@ -11,9 +11,8 @@
 /* áp dụng cỡ chữ + giao diện trước khi vẽ trang để không bị nháy */
 try{var p=JSON.parse(localStorage.getItem('toeic:prefs'))||{};var r=document.documentElement;r.style.fontSize={s:'15px',m:'16px',l:'18px',xl:'20px'}[p.fs]||'16px';r.setAttribute('data-fs',p.fs||'m');if(p.theme&&p.theme!=='auto')r.setAttribute('data-theme',p.theme)}catch(e){}
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<link rel="preload" href="fonts/stix-two-math-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>

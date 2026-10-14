@@ -1,6 +1,9 @@
 (function(){
 const MANIFEST=window.MANIFEST||[];
 let Q=[],GR=[],G={},META=null,KEY='';
+/* thông tin của đề đang mở: các Part có mặt, dải số câu từng Part (đề đầy đủ hoặc bộ luyện theo Part) */
+let TP=[],LP=[],RP=[],RNG={},CNT={},QN={},TOTAL=0;
+const isSet=()=>!!(META&&META.kind==='part');
 const PARTS={
  1:{n:'Photographs',vi:'Mô tả tranh',r:[1,6],dir:'Nghe 4 câu mô tả về mỗi bức tranh và chọn câu mô tả đúng nhất. Các câu chỉ được đọc một lần và không in trong đề.'},
  2:{n:'Question–Response',vi:'Hỏi – đáp',r:[7,31],dir:'Nghe một câu hỏi hoặc câu nói và ba phương án trả lời. Chọn phương án đáp lại phù hợp nhất. Chỉ đọc một lần, không in trong đề.'},
@@ -81,22 +84,24 @@ const reveal=q=> S.view==='review' || (S.kind==='practice'&&S.view==='test'&&cur
 /* ---------- scoring ---------- */
 function score(){
   const a=S.exam.ans, per={};
-  for(let p=1;p<=7;p++)per[p]={c:0,t:0,u:0};
+  TP.forEach(p=>per[p]={c:0,t:0,u:0});
   Q.forEach(q=>{const x=per[q.part];x.t++; if(a[q.n]===undefined)x.u++; else if(a[q.n]===q.ans)x.c++;});
-  const L=[1,2,3,4].reduce((s,p)=>s+per[p].c,0), R=[5,6,7].reduce((s,p)=>s+per[p].c,0);
+  const L=LP.reduce((s,p)=>s+per[p].c,0), R=RP.reduce((s,p)=>s+per[p].c,0);
   const scale=r=>Math.max(5,Math.min(495,Math.round((5+r*4.9)/5)*5));
   return {per,L,R,sL:scale(L),sR:scale(R)};
 }
 
 /* ---------- audio ---------- */
 function setAudio(part,play){
+  if(META&&META.audio===false)return;
   if(UI.audioPart!==part){UI.audioPart=part;au.src='tests/'+UI.test+'/audio/part'+part+'.mp3';au.load();}
   if(play){au.play().catch(()=>{});}
 }
 function stopAudio(){try{au.pause()}catch(e){}}
 au.addEventListener('ended',()=>{
-  if(S.view==='test'&&S.kind==='exam'&&S.exam.phase==='L'&&UI.audioPart<4){
-    const nx=UI.audioPart+1; S.part=nx; setAudio(nx,true); save(); render(true);
+  const nx=LP[LP.indexOf(UI.audioPart)+1];
+  if(S.view==='test'&&S.kind==='exam'&&S.exam.phase==='L'&&nx){
+    S.part=nx; setAudio(nx,true); save(); render(true);
   } else paintAudio();
 });
 ['timeupdate','play','pause','loadedmetadata','durationchange'].forEach(e=>au.addEventListener(e,paintAudio));
@@ -112,12 +117,12 @@ function paintAudio(){
 
 /* ---------- timer ---------- */
 let tick=null;
-const READ_SEC=75*60;
+const readSec=()=>isSet()?(META.minutes||20)*60:75*60;
 function paintTimer(){
   const el=$('#tmr'); if(!el||!UI.test||!S.exam)return;
   if(S.kind!=='exam'||S.view!=='test'){return}
-  if(S.exam.phase==='L'){el.textContent='Listening';el.classList.remove('low');return}
-  const left=READ_SEC-Math.floor((Date.now()-S.exam.rt0)/1000);
+  if(S.exam.phase==='L'){el.textContent=isSet()?'Đang nghe':'Listening';el.classList.remove('low');return}
+  const left=readSec()-Math.floor((Date.now()-S.exam.rt0)/1000);
   el.textContent=fmt(left>0?left:0);
   el.classList.toggle('low',left<=300);
   if(left<=0){submitExam()}
@@ -126,16 +131,17 @@ function startTick(){clearInterval(tick);tick=setInterval(paintTimer,1000)}
 
 /* ---------- actions ---------- */
 function startExam(){
-  S.exam=newExam();S.kind='exam';S.view='test';S.part=1;S.filter='all';
-  setAudio(1,true);save();startTick();render();scrollTo(0,0);
+  S.exam=newExam();S.kind='exam';S.view='test';S.part=TP[0];S.filter='all';
+  if(LP.length)setAudio(LP[0],true); else {S.exam.phase='R';S.exam.rt0=Date.now();stopAudio()}
+  save();startTick();render();scrollTo(0,0);
 }
 function resumeExam(){
   S.kind='exam';S.view='test';
-  if(S.exam.phase==='L'){S.part=Math.min(S.part,4)||1;setAudio(S.part)}
+  if(S.exam.phase==='L'){if(!LP.includes(S.part))S.part=LP[0];setAudio(S.part)}
   startTick();render();
 }
 function toReading(){
-  S.exam.phase='R';S.exam.rt0=Date.now();S.part=5;stopAudio();save();render();scrollTo(0,0);
+  S.exam.phase='R';S.exam.rt0=Date.now();S.part=RP[0];stopAudio();save();render();scrollTo(0,0);
 }
 function submitExam(){
   stopAudio();clearInterval(tick);
@@ -156,44 +162,64 @@ async function openTest(id){
   catch(e){ UI.err='Không tải được dữ liệu đề "'+id+'". Kiểm tra thư mục tests/'+id+'/data.js.'; render(); return; }
   const T=window.TEST; Q=T.questions; GR=T.groups; G={}; GR.forEach(g=>G[g.id]=g);
   META=Object.assign({},m,T.meta||{});
+  QN={};RNG={};CNT={};Q.forEach(q=>{QN[q.n]=q;const r=RNG[q.part];RNG[q.part]=r?[Math.min(r[0],q.n),Math.max(r[1],q.n)]:[q.n,q.n];CNT[q.part]=(CNT[q.part]||0)+1});
+  TP=Object.keys(CNT).map(Number).sort((a,b)=>a-b);LP=TP.filter(p=>p<=4);RP=TP.filter(p=>p>=5);TOTAL=Q.length;
   UI.test=id; KEY='toeic:'+id; UI.audioPart=null; UI.open={}; au.removeAttribute('src');
   S=load()||fresh();
+  if(!TP.includes(S.part))S.part=TP[0];
   if(S.view==='test'){S.view='home'}
   else if(S.view==='review'&&!(S.exam&&S.exam.submitted))S.view='home';
   else if(S.view==='review'&&S.part<=4)setAudio(S.part);
   render(); scrollTo(0,0);
 }
-function testState(id){
-  const r={st:'Chưa làm',cls:'',pc:0,score:null,doing:null,prac:0};
-  try{const j=JSON.parse(localStorage.getItem('toeic:'+id));
+function testState(t){
+  const N=t.questions||200, r={st:'Chưa làm',cls:'',pc:0,score:null,doing:null,prac:0,right:null};
+  try{const j=JSON.parse(localStorage.getItem('toeic:'+t.id));
     if(j&&j.prac)r.prac=Object.keys(j.prac.ans||{}).length;
-    if(j&&j.exam&&j.exam.submitted){r.score=j.exam.score?j.exam.score.sL+j.exam.score.sR:null;r.st=r.score!==null?`Đã thi · ${r.score} điểm`:'Đã nộp bài';r.cls='done';r.pc=100}
-    else if(j&&j.exam){const n=Object.keys(j.exam.ans||{}).length;r.doing=n;r.st=`Đang thi dở · ${n}/200`;r.cls='doing';r.pc=n/2}
-    else if(r.prac){r.st=`Đã luyện ${r.prac}/200 câu`;r.cls='prac';r.pc=r.prac/2}
+    if(j&&j.exam&&j.exam.submitted){const sc=j.exam.score||{};
+      if(t.kind==='part'){r.right=(sc.L||0)+(sc.R||0);r.st=`Đã làm · đúng ${r.right}/${N}`}
+      else{r.score=sc.sL!=null?sc.sL+sc.sR:null;r.st=r.score!==null?`Đã thi · ${r.score} điểm`:'Đã nộp bài'}
+      r.cls='done';r.pc=100}
+    else if(j&&j.exam){const n=Object.keys(j.exam.ans||{}).length;r.doing=n;r.st=`Đang làm dở · ${n}/${N}`;r.cls='doing';r.pc=n/N*100}
+    else if(r.prac){r.st=`Đã luyện ${r.prac}/${N} câu`;r.cls='prac';r.pc=r.prac/N*100}
   }catch(e){}
   return r;
 }
+/* nhóm bộ luyện theo Part: Part 1, 2, 3, 4, 5-6 */
+const SETG=[{k:'1',l:'Part 1',v:'Mô tả tranh'},{k:'2',l:'Part 2',v:'Hỏi – đáp'},{k:'3',l:'Part 3',v:'Hội thoại'},{k:'4',l:'Part 4',v:'Bài nói'},{k:'5',l:'Part 5',v:'Điền vào câu'}];
+const setKey=t=>String((t.parts||[0])[0]);
 function libHTML(){
-  const states=MANIFEST.map(t=>({t,s:testState(t.id)}));
-  const done=states.filter(x=>x.s.score!==null), best=done.length?Math.max(...done.map(x=>x.s.score)):null;
+  const full=MANIFEST.filter(t=>t.kind!=='part'), sets=MANIFEST.filter(t=>t.kind==='part');
+  const states=MANIFEST.map(t=>({t,s:testState(t)}));
+  const fs=states.filter(x=>x.t.kind!=='part');
+  const done=fs.filter(x=>x.s.score!==null), best=done.length?Math.max(...done.map(x=>x.s.score)):null;
   const doing=states.find(x=>x.s.doing!==null);
   let known=0;try{const v=JSON.parse(localStorage.getItem('toeic:vocab'));if(v&&v.s)known=Object.values(v.s).filter(x=>x===1).length}catch(e){}
-  const cards=states.map(({t,s},i)=>{
-    const num=(t.id.match(/\d+/)||[String(i+1)])[0].padStart(2,'0');
+  const card=({t,s},i)=>{
+    const num=(t.id.match(/(\d+)$/)||[0,String(i+1)])[1].padStart(2,'0');
     return `<button class="tcard ${s.cls}" data-act="open" data-id="${esc(t.id)}"><span class="tnum" aria-hidden="true">${esc(num)}</span><span class="tbody"><span class="tt">${esc(t.title)}</span><span class="ts">${esc(t.subtitle||'')}</span>
       <span class="tm"><span>${t.questions||200} câu · ${t.minutes||120} phút</span><span class="st ${s.cls}">${s.st}</span></span><span class="mini"><i style="width:${s.pc}%"></i></span></span></button>`;
-  }).join('');
+  };
+  if(!UI.setTab){try{UI.setTab=localStorage.getItem('toeic:setTab')}catch(e){} if(!SETG.some(g=>g.k===UI.setTab))UI.setTab='1'}
+  const groups=SETG.filter(g=>sets.some(t=>setKey(t)===g.k));
+  const cur=states.filter(x=>x.t.kind==='part'&&setKey(x.t)===UI.setTab);
+  const setCard=({t,s})=>{const num=(t.id.match(/(\d+)$/)||[0,'?'])[1];
+    return `<button class="scard ${s.cls}" data-act="open" data-id="${esc(t.id)}"><span class="sn">Đề ${esc(num)}</span><span class="sm">${t.questions} câu${t.audio===false?' · không có audio':''}</span><span class="st ${s.cls}">${s.st}</span><span class="mini"><i style="width:${s.pc}%"></i></span></button>`};
   const strip=`<div class="quick">
-    ${doing?`<button class="qcard warm" data-act="open" data-id="${esc(doing.t.id)}"><span class="qi">${ICON.clock}</span><span><b>Tiếp tục ${esc(doing.t.title)}</b><small>Bài thi đang làm dở · ${doing.s.doing}/200 câu</small></span>${ICON.arrow}</button>`:''}
+    ${doing?`<button class="qcard warm" data-act="open" data-id="${esc(doing.t.id)}"><span class="qi">${ICON.clock}</span><span><b>Tiếp tục ${esc(doing.t.title)}</b><small>Bài đang làm dở · ${doing.s.doing}/${doing.t.questions||200} câu</small></span>${ICON.arrow}</button>`:''}
     <a class="qcard" href="#vocab"><span class="qi">${ICON.cards}</span><span><b>Học từ vựng</b><small>${known?`Đã thuộc ${known} từ · ôn tiếp bằng flashcard`:'Flashcard theo Part và theo từ loại'}</small></span>${ICON.arrow}</a>
   </div>`;
   return siteNav('tests')+`<main class="wrap home">
-   <section class="hero"><div class="eyebrow">Luyện đề TOEIC</div><h1>Chọn một đề để bắt đầu</h1><p>Thi thử đủ 200 câu theo đúng thời gian, hoặc luyện từng Part và xem lời giải ngay sau mỗi câu. Kết quả được lưu trên trình duyệt này.</p>
-    <div class="facts"><span><b>${MANIFEST.length}</b> đề</span><span><b>${done.length}</b> đã thi</span>${best!==null?`<span>Điểm cao nhất <b>${best}</b></span>`:''}</div></section>
+   <section class="hero"><div class="eyebrow">Luyện đề TOEIC</div><h1>Chọn một đề để bắt đầu</h1><p>Thi thử đủ 200 câu theo đúng thời gian, hoặc làm từng bộ luyện theo Part. Đáp án, lời giải và bản dịch có sẵn; kết quả lưu trên trình duyệt này.</p>
+    <div class="facts"><span><b>${full.length}</b> đề đầy đủ</span><span><b>${sets.length}</b> bộ luyện theo Part</span>${best!==null?`<span>Điểm cao nhất <b>${best}</b></span>`:''}</div></section>
    ${strip}
    ${UI.err?`<div class="dirs" role="alert">${esc(UI.err)}</div>`:''}
-   <section><div class="sec-h"><h2>Thư viện đề</h2><span>Nhấn vào một đề để chọn thi thử hoặc luyện Part</span></div>
-   <div class="tests">${cards||'<div class="empty">Chưa có đề nào trong tests/manifest.js.</div>'}</div></section></main>`;
+   <section><div class="sec-h"><h2>Đề thi đầy đủ</h2><span>200 câu · Listening + Reading · chấm điểm ước tính</span></div>
+   <div class="tests">${fs.map(card).join('')||'<div class="empty">Chưa có đề nào.</div>'}</div></section>
+   ${sets.length?`<section id="sets"><div class="sec-h"><h2>Luyện theo từng Part</h2><span>Mỗi bộ là một đề ngắn của riêng một Part</span></div>
+    <div class="ptabs" role="tablist">${groups.map(g=>{const n=sets.filter(t=>setKey(t)===g.k).length;return `<button class="ptab" role="tab" data-act="settab" data-k="${g.k}" aria-selected="${UI.setTab===g.k}"><b>${g.l}</b><small>${g.v} · ${n} đề</small></button>`}).join('')}</div>
+    <div class="sets">${cur.map(setCard).join('')||'<div class="empty">Chưa có bộ nào.</div>'}</div></section>`:''}
+  </main>`;
 }
 function modal(msg,okLabel,fn){UI.modal={msg,okLabel,fn};render(true)}
 
@@ -204,31 +230,35 @@ function partStats(p){
   return {t:qs.length,a,c};
 }
 function homeHTML(){
-  const ex=S.exam;
+  const ex=S.exam, set=isSet(), lmin=set?null:45;
   let side='';
   if(ex&&!ex.submitted){
     const n=Object.keys(ex.ans).length;
-    side=`<div class="card accent-l"><div class="eyebrow">Đang làm dở</div><h2>Bài thi chưa nộp</h2><p>Đã trả lời <b>${n}/200</b> câu, đang ở phần ${ex.phase==='L'?'Listening':'Reading'}.</p><div class="mini lg"><i style="width:${n/2}%"></i></div><div class="row"><button class="btn pri" data-act="resume">Tiếp tục làm bài ${ICON.arrow}</button></div></div>`;
+    side=`<div class="card accent-l"><div class="eyebrow">Đang làm dở</div><h2>Bài làm chưa nộp</h2><p>Đã trả lời <b>${n}/${TOTAL}</b> câu${set?'':`, đang ở phần ${ex.phase==='L'?'Listening':'Reading'}`}.</p><div class="mini lg"><i style="width:${n/TOTAL*100}%"></i></div><div class="row"><button class="btn pri" data-act="resume">Tiếp tục làm bài ${ICON.arrow}</button></div></div>`;
   } else if(ex&&ex.submitted){
     const s=score();
-    side=`<div class="card"><div class="eyebrow">Lần thi gần nhất</div><div class="last"><div><small>Điểm ước tính</small><span class="big">${s.sL+s.sR}<span class="note">/990</span></span></div><div><small>Listening</small><span class="big sm">${s.L}<span class="note">/100</span></span></div><div><small>Reading</small><span class="big sm">${s.R}<span class="note">/100</span></span></div></div><div class="row"><button class="btn" data-act="result">Xem kết quả</button><button class="btn" data-act="review">Xem lại đáp án</button></div></div>`;
+    side=set?`<div class="card"><div class="eyebrow">Lần làm gần nhất</div><div class="last"><div><small>Số câu đúng</small><span class="big">${s.L+s.R}<span class="note">/${TOTAL}</span></span></div><div><small>Tỉ lệ</small><span class="big sm">${Math.round((s.L+s.R)/TOTAL*100)}%</span></div></div><div class="row"><button class="btn" data-act="result">Xem kết quả</button><button class="btn" data-act="review">Xem lại đáp án</button></div></div>`
+      :`<div class="card"><div class="eyebrow">Lần thi gần nhất</div><div class="last"><div><small>Điểm ước tính</small><span class="big">${s.sL+s.sR}<span class="note">/990</span></span></div><div><small>Listening</small><span class="big sm">${s.L}<span class="note">/100</span></span></div><div><small>Reading</small><span class="big sm">${s.R}<span class="note">/100</span></span></div></div><div class="row"><button class="btn" data-act="result">Xem kết quả</button><button class="btn" data-act="review">Xem lại đáp án</button></div></div>`;
   } else {
-    side=`<div class="card soft"><div class="eyebrow">Mẹo</div><h2>Mới bắt đầu?</h2><p>Luyện từng Part để làm quen dạng câu hỏi và đọc lời giải, sau đó thi thử toàn bộ để biết điểm ước tính.</p></div>`;
+    side=set?`<div class="card soft"><div class="eyebrow">Hai cách làm</div><h2>Luyện hay làm bài?</h2><p><b>Luyện từng câu</b>: đáp án và lời giải hiện ngay sau khi chọn. <b>Làm bài</b>: làm hết rồi mới chấm, giống phòng thi.</p></div>`
+      :`<div class="card soft"><div class="eyebrow">Mẹo</div><h2>Mới bắt đầu?</h2><p>Luyện từng Part để làm quen dạng câu hỏi và đọc lời giải, sau đó thi thử toàn bộ để biết điểm ước tính.</p></div>`;
   }
   const pcard=p=>{
     const st=partStats(p),P=PARTS[p],pc=st.a/st.t*100;
-    return `<button class="pcard ${st.a===st.t?'full':''}" data-act="prac" data-part="${p}"><span class="ph"><span class="pn">Part ${p}</span><span class="pq">${st.t} câu</span></span><span class="pt">${P.vi}</span><span class="pv">${P.n}</span><span class="pm"><span>${st.a?`Đúng ${st.c}/${st.a}`:'Chưa làm'}</span><span>${st.a?Math.round(pc)+'%':''}</span></span><span class="mini"><i style="width:${pc}%"></i></span></button>`;
+    return `<button class="pcard ${st.a===st.t?'full':''}" data-act="prac" data-part="${p}"><span class="ph"><span class="pn">Part ${p}</span><span class="pq">${st.t} câu</span></span><span class="pt">${set?'Luyện từng câu':P.vi}</span><span class="pv">${set?'Đáp án hiện ngay sau mỗi câu':P.n}</span><span class="pm"><span>${st.a?`Đúng ${st.c}/${st.a}`:'Chưa làm'}</span><span>${st.a?Math.round(pc)+'%':''}</span></span><span class="mini"><i style="width:${pc}%"></i></span></button>`;
   };
+  const noAudio=LP.length&&META.audio===false;
+  const facts=set?`<span><b>${TOTAL}</b> câu</span>${TP.map(p=>`<span>Part ${p} · <b>${CNT[p]}</b> câu</span>`).join('')}${RP.length?`<span>Thời gian <b>${META.minutes||20}</b> phút</span>`:''}`
+    :`<span><b>${TOTAL}</b> câu</span><span>Listening <b>45</b> phút</span><span>Reading <b>75</b> phút</span><span><b>7</b> Part</span>`;
+  const examCard=set?`<div class="card feature"><div class="eyebrow">Làm như thi thật</div><h2>Làm cả bộ rồi chấm</h2><p>${LP.length?'Nghe audio một lượt và chọn đáp án.':`Làm trong ${META.minutes||20} phút.`} Đáp án và lời giải hiện sau khi nộp bài.</p><div class="row"><button class="btn pri lg" data-act="start" ${noAudio?'disabled':''}>${ex&&!ex.submitted?'Làm bài mới':'Bắt đầu làm bài'} ${ICON.arrow}</button>${noAudio?'<span class="note">Bộ này chưa có file audio</span>':LP.length?'<span class="note">Nên đeo tai nghe</span>':''}</div></div>`
+    :`<div class="card feature"><div class="eyebrow">Mô phỏng phòng thi</div><h2>Thi thử toàn bộ</h2><p>Nghe audio 4 Part liên tục, sau đó làm Reading trong 75 phút. Đáp án và lời giải chỉ hiện sau khi nộp bài.</p><div class="row"><button class="btn pri lg" data-act="start">${ex&&!ex.submitted?'Làm bài mới':'Bắt đầu thi thử'} ${ICON.arrow}</button><span class="note">Nên đeo tai nghe · audio phát một lần</span></div></div>`;
   return siteNav('tests')+`<main class="wrap home">
    <section class="hero"><button class="btn sm ghost" data-act="lib">${ICON.back} Tất cả đề</button><div class="eyebrow">${esc(META.source||'')}</div><h1>${esc(META.title)}</h1>
-   <p>${esc(META.subtitle||'Đề đầy đủ gồm Listening và Reading, có audio, chấm điểm tự động, lời giải chi tiết và bản dịch tiếng Việt.')}</p>
-   <div class="facts"><span><b>${Q.length}</b> câu</span><span>Listening <b>45</b> phút</span><span>Reading <b>75</b> phút</span><span><b>7</b> Part</span></div></section>
-   <div class="modes">
-    <div class="card feature"><div class="eyebrow">Mô phỏng phòng thi</div><h2>Thi thử toàn bộ</h2><p>Nghe audio 4 Part liên tục, sau đó làm Reading trong 75 phút. Đáp án và lời giải chỉ hiện sau khi nộp bài.</p><div class="row"><button class="btn pri lg" data-act="start">${ex&&!ex.submitted?'Làm bài mới':'Bắt đầu thi thử'} ${ICON.arrow}</button><span class="note">Nên đeo tai nghe · audio phát một lần</span></div></div>
-    ${side}
-   </div>
-   <section><div class="sec-h"><h2><span class="sh-i">${ICON.head}</span>Listening</h2><span>Có audio, tua và đổi tốc độ được</span></div><div class="parts">${[1,2,3,4].map(pcard).join('')}</div></section>
-   <section><div class="sec-h"><h2><span class="sh-i">${ICON.book}</span>Reading</h2><span>Đáp án và lời giải hiện ngay sau mỗi câu</span></div><div class="parts">${[5,6,7].map(pcard).join('')}</div></section>
+   <p>${esc(META.subtitle||'')}</p>
+   <div class="facts">${facts}</div></section>
+   <div class="modes">${examCard}${side}</div>
+   ${LP.length?`<section><div class="sec-h"><h2><span class="sh-i">${ICON.head}</span>Listening</h2><span>${noAudio?'Bộ này chưa có audio — vẫn xem được đề và lời giải':'Có audio, tua và đổi tốc độ được'}</span></div><div class="parts">${LP.map(pcard).join('')}</div></section>`:''}
+   ${RP.length?`<section><div class="sec-h"><h2><span class="sh-i">${ICON.book}</span>Reading</h2><span>Đáp án và lời giải hiện ngay sau mỗi câu</span></div><div class="parts">${RP.map(pcard).join('')}</div></section>`:''}
   </main>`;
 }
 
@@ -288,11 +318,12 @@ function contentHTML(){
       return `<section class="grp">${head}${gq.map(qHTML).join('')}${gexpHTML(g)}</section>`;
     }).join('');
   }
-  return `<div class="ptitle"><h2>Part ${p} · ${P.n}</h2><span>${P.vi} · câu ${P.r[0]}–${P.r[1]}</span></div><div class="dirs">${P.dir}</div>${body}`;
+  const r=RNG[p]||P.r;
+  return `<div class="ptitle"><h2>Part ${p} · ${P.n}</h2><span>${P.vi} · câu ${r[0]}–${r[1]}</span></div><div class="dirs">${P.dir}</div>${body}`;
 }
 function palHTML(){
   const a=curAns(), rev=S.view==='review'||S.view==='result';
-  const parts=S.kind==='practice'&&S.view==='test'?[S.part]:[1,2,3,4,5,6,7];
+  const parts=S.kind==='practice'&&S.view==='test'?[S.part]:TP;
   const lockR=S.kind==='exam'&&S.view==='test'&&S.exam.phase==='L';
   const groups=parts.map(p=>{
     const dis=lockR&&p>=5;
@@ -306,14 +337,15 @@ function palHTML(){
     }).join('');
     return `<div class="pg"><div class="gl">Part ${p}</div><div class="pnum">${btns}</div></div>`;
   }).join('');
-  const done=Object.keys(a).filter(n=>parts.includes(Q[n-1].part)).length, tot=parts.reduce((s,p)=>s+PARTS[p].r[1]-PARTS[p].r[0]+1,0);
+  const done=Object.keys(a).filter(n=>QN[n]&&parts.includes(QN[n].part)).length, tot=parts.reduce((s,p)=>s+CNT[p],0);
   const legend=rev||S.kind==='practice'?`<div class="legend"><span><i style="background:var(--ok);border-color:var(--ok)"></i>Đúng</span><span><i style="background:var(--bad);border-color:var(--bad)"></i>Sai</span><span><i style="border-color:var(--warn)"></i>Bỏ trống</span></div>`:`<div class="legend"><span><i style="background:var(--accent);border-color:var(--accent)"></i>Đã chọn</span><span><i style="background:var(--warn);border-color:var(--warn)"></i>Đánh dấu</span></div>`;
   return `<div class="pal"><h3>Phiếu trả lời <span>${done}/${tot}</span></h3>${groups}${legend}</div>`;
 }
 function audioHTML(){
   const exam=S.kind==='exam'&&S.view==='test';
   if(S.part>4||(exam&&S.exam.phase!=='L'))return '';
-  const lab=exam?`Audio Part ${UI.audioPart||1}/4 · tự chuyển Part`:`Audio Part ${S.part}`;
+  if(META.audio===false)return `<div class="audio wrap"><span class="lab">Bộ này chưa có file audio.</span></div>`;
+  const lab=exam?(LP.length>1?`Audio Part ${UI.audioPart||LP[0]} · tự chuyển Part`:`Audio Part ${UI.audioPart||LP[0]}`):`Audio Part ${S.part}`;
   return `<div class="audio wrap"><button class="pp" id="apl" data-act="aplay"></button>
    ${exam?'':'<button class="ic" data-act="aback" aria-label="Lùi 10 giây">−10s</button><button class="ic" data-act="afwd" aria-label="Tiến 10 giây">+10s</button>'}
    <span class="lab">${lab}</span>
@@ -325,8 +357,8 @@ function headerHTML(){
   const exam=S.kind==='exam'&&S.view==='test', prac=S.kind==='practice'&&S.view==='test', rev=S.view==='review';
   let right='';
   if(exam){
-    right=`<span class="timer" id="tmr">Listening</span>`+
-      (S.exam.phase==='L'?`<button class="btn sm" data-act="toR">Sang phần Reading</button>`:'')+
+    right=`<span class="timer" id="tmr">${isSet()&&S.exam.phase==='L'?'Đang nghe':'Listening'}</span>`+
+      (S.exam.phase==='L'&&RP.length?`<button class="btn sm" data-act="toR">Sang phần Reading</button>`:'')+
       `<button class="btn sm pri" data-act="submit">Nộp bài</button>`;
   } else if(prac){
     const st=partStats(S.part);
@@ -337,34 +369,38 @@ function headerHTML(){
   let tabs='';
   if(!prac){
     const lockR=exam&&S.exam.phase==='L', lockL=exam&&S.exam.phase==='R';
-    tabs=`<div class="tabs" role="tablist">`+[1,2,3,4,5,6,7].map(p=>{
+    tabs=TP.length<2?'':`<div class="tabs" role="tablist">`+TP.map(p=>{
       const dis=(lockR&&p>=5)||(lockL&&p<=4);
-      return `<button class="tab" role="tab" data-act="tab" data-part="${p}" aria-selected="${p===S.part}" ${dis?'disabled':''}>Part ${p}<small>${PARTS[p].r[1]-PARTS[p].r[0]+1}</small></button>`;
+      return `<button class="tab" role="tab" data-act="tab" data-part="${p}" aria-selected="${p===S.part}" ${dis?'disabled':''}>Part ${p}<small>${CNT[p]}</small></button>`;
     }).join('')+`</div>`;
   }
   const fb=rev?`<div class="fbar wrap" style="padding-bottom:8px">`+[['all','Tất cả'],['wrong','Câu sai'],['blank','Chưa làm'],['flag','Đã đánh dấu']].map(([k,l])=>`<button class="chip" data-act="filter" data-f="${k}" aria-pressed="${S.filter===k}">${l}</button>`).join('')+`</div>`:'';
-  const title=prac?`Luyện Part ${S.part}`:rev?'Xem lại đáp án':(S.exam&&S.exam.phase==='R'?'Reading':'Listening');
-  const a=curAns(), tot=prac?PARTS[S.part].r[1]-PARTS[S.part].r[0]+1:200;
+  const title=prac?`Luyện Part ${S.part}`:rev?'Xem lại đáp án':isSet()?'Làm bài':(S.exam&&S.exam.phase==='R'?'Reading':'Listening');
+  const a=curAns(), tot=prac?CNT[S.part]:TOTAL;
   const n=prac?Q.filter(q=>q.part===S.part&&a[q.n]!==undefined).length:Object.keys(a).length;
   const back=exam?'':`<button class="ibtn" data-act="home" aria-label="Về trang đề" title="Về trang đề">${ICON.back}</button>`;
   return `<div class="hdr" id="hdr"><div class="wrap"><div class="hrow">${back}<div class="brand">${esc(META.title)} <small>${title}</small></div>${right}${prefsBtn()}</div>${tabs}</div>${fb}${audioHTML()}<div class="hprog" aria-hidden="true"><i style="width:${n/tot*100}%"></i></div></div>`;
 }
 function resultHTML(){
-  const s=score(), tot=s.sL+s.sR;
+  const s=score(), tot=s.sL+s.sR, right=s.L+s.R;
   const blank=Object.values(s.per).reduce((a,x)=>a+x.u,0);
-  const bars=[1,2,3,4,5,6,7].map(p=>{
+  const bars=TP.map(p=>{
     const x=s.per[p],pc=x.c/x.t*100;
     return `<div class="br"><span>Part ${p} · ${PARTS[p].vi}</span><div class="tr"><i class="${pc>=75?'hi':pc<50?'lo':''}" style="width:${pc}%"></i></div><b>${x.c}/${x.t}</b></div>`;
   }).join('');
-  const sorted=[1,2,3,4,5,6,7].sort((a,b)=>s.per[a].c/s.per[a].t-s.per[b].c/s.per[b].t);
-  const w=sorted[0];
-  return siteNav('tests')+`<div class="wrap res">
-   <div class="hero"><div class="eyebrow">Kết quả thi thử</div><h1>Bạn đúng ${s.L+s.R}/200 câu</h1><p>${blank?`Còn ${blank} câu chưa trả lời. `:''}Part cần ôn thêm nhiều nhất là Part ${w} (${PARTS[w].vi}), đúng ${s.per[w].c}/${s.per[w].t} câu.</p></div>
-   <div class="scores"><div class="sc main"><small>Tổng điểm ước tính</small><div class="n">${tot}<em> / 990</em></div><p>Quy đổi gần đúng, không phải điểm chính thức.</p></div>
+  const w=TP.slice().sort((a,b)=>s.per[a].c/s.per[a].t-s.per[b].c/s.per[b].t)[0];
+  const pct=Math.round(right/TOTAL*100);
+  const cards=isSet()?`<div class="scores two"><div class="sc main"><small>Số câu đúng</small><div class="n">${right}<em> / ${TOTAL}</em></div><p>${pct>=80?'Rất tốt! Thử một bộ khác cùng Part.':pct>=60?'Khá ổn. Xem lại các câu sai để rút kinh nghiệm.':'Hãy xem lại lời giải và luyện thêm bộ này.'}</p></div>
+     <div class="sc"><small>Tỉ lệ đúng</small><div class="n">${pct}<em> %</em></div><p>${blank?`${blank} câu chưa trả lời`:'Đã trả lời tất cả'}</p></div></div>`
+   :`<div class="scores"><div class="sc main"><small>Tổng điểm ước tính</small><div class="n">${tot}<em> / 990</em></div><p>Quy đổi gần đúng, không phải điểm chính thức.</p></div>
     <div class="sc"><small>Listening</small><div class="n">${s.sL}<em> / 495</em></div><p>${s.L}/100 câu đúng</p></div>
-    <div class="sc"><small>Reading</small><div class="n">${s.sR}<em> / 495</em></div><p>${s.R}/100 câu đúng</p></div></div>
-   <div class="card"><div class="sec-h"><h2>Kết quả theo Part</h2><span>Xanh ≥ 75% · Đỏ &lt; 50%</span></div><div class="bars">${bars}</div></div>
-   <div class="row"><button class="btn pri" data-act="review">Xem lại đáp án và giải thích</button><button class="btn" data-act="start-confirm">Làm lại từ đầu</button><button class="btn" data-act="home">Trang chủ</button></div>
+    <div class="sc"><small>Reading</small><div class="n">${s.sR}<em> / 495</em></div><p>${s.R}/100 câu đúng</p></div></div>`;
+  const sub=isSet()?(blank?`Còn ${blank} câu chưa trả lời.`:''):`${blank?`Còn ${blank} câu chưa trả lời. `:''}Part cần ôn thêm nhiều nhất là Part ${w} (${PARTS[w].vi}), đúng ${s.per[w].c}/${s.per[w].t} câu.`;
+  return siteNav('tests')+`<div class="wrap res">
+   <div class="hero"><div class="eyebrow">${isSet()?esc(META.title):'Kết quả thi thử'}</div><h1>Bạn đúng ${right}/${TOTAL} câu</h1>${sub?`<p>${sub}</p>`:''}</div>
+   ${cards}
+   ${TP.length>1?`<div class="card"><div class="sec-h"><h2>Kết quả theo Part</h2><span>Xanh ≥ 75% · Đỏ &lt; 50%</span></div><div class="bars">${bars}</div></div>`:''}
+   <div class="row"><button class="btn pri" data-act="review">Xem lại đáp án và giải thích</button><button class="btn" data-act="start-confirm">Làm lại từ đầu</button><button class="btn" data-act="home">Trang của đề</button><button class="btn ghost" data-act="lib">Tất cả đề</button></div>
   </div>`;
 }
 function modalHTML(){
@@ -405,13 +441,14 @@ document.addEventListener('click',e=>{
    case 'prefs': e.stopPropagation(); UIP.open=!UIP.open; paintPrefs(); return;
    case 'pref': { const k=t.dataset.k; PREF[k]=t.dataset.v; try{localStorage.setItem(PKEY,JSON.stringify(PREF))}catch(x){} applyPrefs(); paintPrefs(); const h=$('#hdr'); if(h)document.documentElement.style.setProperty('--hdr',h.offsetHeight+'px'); return; }
    case 'lib': library(); break;
+   case 'settab': UI.setTab=t.dataset.k; try{localStorage.setItem('toeic:setTab',UI.setTab)}catch(x){} render(true); break;
    case 'open': openTest(t.dataset.id); break;
    case 'start':
      if(S.exam&&!S.exam.submitted) modal('Bạn đang có một bài thi chưa nộp. Bắt đầu bài mới sẽ xóa bài làm cũ.','Bắt đầu bài mới',startExam); else startExam(); break;
    case 'start-confirm': modal('Làm lại từ đầu sẽ xóa kết quả hiện tại.','Làm lại',startExam); break;
    case 'resume': resumeExam(); break;
    case 'result': S.view='result';save();render();scrollTo(0,0);break;
-   case 'review': S.view='review';S.kind='exam';S.part=1;S.filter='all';setAudio(1);save();render();scrollTo(0,0);break;
+   case 'review': S.view='review';S.kind='exam';S.part=TP[0];S.filter='all';if(S.part<=4&&META.audio!==false)setAudio(S.part);save();render();scrollTo(0,0);break;
    case 'prac': startPractice(+t.dataset.part); break;
    case 'home': home(); break;
    case 'redo':
@@ -419,12 +456,12 @@ document.addEventListener('click',e=>{
    case 'toR': modal('Chuyển sang phần Reading sẽ dừng audio và bắt đầu đồng hồ 75 phút. Bạn không thể quay lại Listening.','Sang Reading',toReading); break;
    case 'submit': {
      const n=Object.keys(S.exam.ans).length;
-     modal(`Bạn đã trả lời ${n}/200 câu. Nộp bài và xem kết quả?`,'Nộp bài',submitExam); break; }
+     modal(`Bạn đã trả lời ${n}/${TOTAL} câu. Nộp bài và xem kết quả?`,'Nộp bài',submitExam); break; }
    case 'tab': {
      S.part=+t.dataset.part; if(S.part<=4){setAudio(S.part,false)}
      UI.pal=false; save(); render(); scrollTo(0,0); break; }
    case 'jump': {
-     const q=Q[+t.dataset.q-1]; S.part=q.part; UI.pal=false;
+     const q=QN[+t.dataset.q]; S.part=q.part; UI.pal=false;
      if(q.part<=4&&S.kind!=='exam')setAudio(q.part);
      if(S.view==='review'&&S.filter!=='all')S.filter='all';
      render(); const el=document.getElementById('q'+q.n); if(el)el.scrollIntoView({block:'start'}); break; }
