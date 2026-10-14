@@ -3,6 +3,16 @@
 Website thi thử TOEIC chạy hoàn toàn trên trình duyệt (HTML/CSS/JS thuần, không build, không server).
 
 ## Tính năng
+Website có hai chuyên mục riêng, chuyển qua thanh trên cùng: **Luyện đề** và **Từ vựng**.
+
+### Từ vựng (`#vocab`)
+- 26 bài (≈1.300 từ) chia theo Part 1–4 và theo từ loại: động từ, danh từ, tính từ, trạng từ, giới từ & cụm từ.
+- **Flashcard**: lật thẻ xem nghĩa, phiên âm UK/US, ví dụ song ngữ, cụm từ, từ liên quan; bấm "Đã thuộc" / "Chưa thuộc" (phím → / ←, Space để lật). Từ chưa thuộc quay lại sau vài thẻ.
+- **Trắc nghiệm** 4 lựa chọn (Anh → Việt hoặc Việt → Anh), câu sai tự chuyển sang "Chưa thuộc".
+- **Danh sách từ**: lọc, xem ví dụ, đổi trạng thái từng từ. Phát âm bằng giọng đọc của trình duyệt.
+- Học cả nhóm, ôn tất cả từ chưa thuộc, tra từ trên toàn bộ dữ liệu.
+
+### Luyện đề
 - **Thư viện đề**: mỗi đề là một thư mục trong `tests/`, trạng thái và kết quả lưu riêng từng đề.
 - **Thi thử toàn bộ**: audio Listening 4 Part tự chuyển tiếp, Reading có đồng hồ 75 phút, chỉ xem đáp án sau khi nộp.
 - **Luyện từng Part**: đáp án và giải thích hiện ngay sau mỗi câu; audio tua được, đổi tốc độ.
@@ -18,8 +28,10 @@ tests/<id>/data.js                câu hỏi, đáp án, giải thích (window.T
 tests/<id>/img/                   ảnh Part 1 và hình bảng/sơ đồ
 tests/<id>/audio/part1..4.mp3     audio
 tests/<id>/crops.json             tọa độ cắt ảnh từ PDF (để làm lại được)
-tools/                            build_test.py, crop_images.py, validate_test.py
+vocab.js, vocab/data.js           phần Từ vựng (data.js tạo bằng tools/build_vocab.py)
+tools/                            build_test.py, crop_images.py, validate_test.py, build_vocab.py
 docs/ADD_NEW_TEST.md              prompt giao cho AI để thêm đề mới
+docs/ADD_VOCAB.md                 cách thêm/cập nhật từ vựng từ file CSV
 docs/MD_FORMAT.md                 định dạng markdown của đề
 ```
 

@@ -16,6 +16,12 @@ const md=s=>marked.parse(s||'',{breaks:true});
 const mdi=s=>marked.parseInline(s||'');
 const $=s=>document.querySelector(s);
 const au=$('#au');
+const isVocab=()=>location.hash.slice(1).split('/')[0]==='vocab';
+/* thanh điều hướng chung: Luyện đề | Từ vựng */
+function siteNav(active){
+  return `<nav class="site wrap" aria-label="Chuyên mục"><a class="logo" href="#">TOEIC<span>luyện thi</span></a><div class="snav"><a href="#" ${active==='tests'?'aria-current="page"':''}>Luyện đề</a><a href="#vocab" ${active==='vocab'?'aria-current="page"':''}>Từ vựng</a></div></nav>`;
+}
+window.TOEIC={siteNav,esc,loadScript:src=>loadScript(src)};
 
 /* ---------- state ---------- */
 let S;
@@ -124,7 +130,7 @@ function libHTML(){
       else if(j&&j.prac&&Object.keys(j.prac.ans||{}).length){st='Đã luyện '+Object.keys(j.prac.ans).length+' câu';cls='doing'}}catch(e){}
     return `<button class="tcard" data-act="open" data-id="${esc(t.id)}"><span class="eyebrow">${esc(t.source||'')}</span><span class="tt">${esc(t.title)}</span><span class="ts">${esc(t.subtitle||'')}</span><span class="tm"><span>${t.questions||200} câu · ${t.minutes||120} phút</span><span class="st ${cls}">${st}</span></span></button>`;
   }).join('');
-  return `<div class="wrap home"><div class="hero"><div class="eyebrow">Luyện thi TOEIC</div><h1>Thư viện đề thi</h1><p>Chọn một đề để thi thử toàn bộ hoặc luyện từng Part. Kết quả của mỗi đề được lưu riêng trên trình duyệt này.</p></div>${UI.err?`<div class="dirs" role="alert">${esc(UI.err)}</div>`:''}<div class="parts tests">${cards||'<div class="empty">Chưa có đề nào trong tests/manifest.js.</div>'}</div></div>`;
+  return siteNav('tests')+`<div class="wrap home"><div class="hero"><div class="eyebrow">Luyện đề</div><h1>Thư viện đề thi</h1><p>Chọn một đề để thi thử toàn bộ hoặc luyện từng Part. Kết quả của mỗi đề được lưu riêng trên trình duyệt này.</p></div>${UI.err?`<div class="dirs" role="alert">${esc(UI.err)}</div>`:''}<div class="parts tests">${cards||'<div class="empty">Chưa có đề nào trong tests/manifest.js.</div>'}</div></div>`;
 }
 function modal(msg,okLabel,fn){UI.modal={msg,okLabel,fn};render(true)}
 
@@ -302,6 +308,7 @@ function render(keep){
   const y=window.scrollY;
   document.body.classList.toggle('pal-open',UI.pal);
   const app=$('#app');
+  if(isVocab()){ if(window.VocabApp)window.VocabApp.render(); return; }
   if(!UI.test)app.innerHTML=libHTML();
   else if(S.view==='home')app.innerHTML=homeHTML()+modalHTML();
   else if(S.view==='result')app.innerHTML=resultHTML()+modalHTML();
@@ -369,6 +376,11 @@ document.addEventListener('click',e=>{
   if(UI.pal&&!e.target.closest('#side')&&!e.target.closest('.palbtn')){UI.pal=false;document.body.classList.remove('pal-open')}
 },true);
 addEventListener('resize',()=>{const h=$('#hdr');if(h)document.documentElement.style.setProperty('--hdr',h.offsetHeight+'px')});
+
+addEventListener('hashchange',()=>{
+  if(isVocab()){stopAudio();clearInterval(tick);UI.pal=false;document.body.classList.remove('pal-open');render();}
+  else library();
+});
 
 /* ---------- boot ---------- */
 render();
