@@ -138,10 +138,12 @@ function optsHTML(){
   const st=stats(U.set.keys), todo=st.t-st.k;
   const chip=(k,v,l)=>`<button class="chip" data-v="opt" data-o="${k}" data-val="${v}" aria-pressed="${String(O[k])===String(v)}">${l}</button>`;
   if(O.mode==='list')return '';
-  return `<div class="vopts"><span class="lbl">Từ</span>${chip('filter','all','Tất cả '+st.t)}${chip('filter','todo','Cần học '+todo)}
+  if(U.optOpen===undefined)U.optOpen=matchMedia('(min-width:641px)').matches;
+  const sum=[O.filter==='todo'?'Cần học':'Tất cả',O.dir==='en'?'Anh → Việt':'Việt → Anh',O.shuffle?'Trộn':'Theo bài'].concat(O.mode==='card'&&O.auto?['Tự đọc']:[]).join(' · ');
+  return `<details class="vopts" ${U.optOpen?'open':''}><summary><span class="lbl">Tùy chọn</span><span class="vsum">${sum}</span></summary><div class="vopts-in"><span class="lbl">Từ</span>${chip('filter','all','Tất cả '+st.t)}${chip('filter','todo','Cần học '+todo)}
     <span class="lbl">Hỏi</span>${chip('dir','en','Anh → Việt')}${chip('dir','vi','Việt → Anh')}
     <span class="lbl">Thứ tự</span>${chip('shuffle',true,'Trộn')}${chip('shuffle',false,'Theo bài')}
-    ${TTS&&O.mode==='card'?`<span class="lbl">Âm</span>${chip('auto',true,'Tự đọc')}${chip('auto',false,'Tắt')}`:''}</div>`;
+    ${TTS&&O.mode==='card'?`<span class="lbl">Âm</span>${chip('auto',true,'Tự đọc')}${chip('auto',false,'Tắt')}`:''}</div></details>`;
 }
 
 function cardHTML(){
@@ -198,7 +200,7 @@ function deckHTML(){
   const tab=(m,l)=>`<button class="tab" role="tab" data-v="mode" data-m="${m}" aria-selected="${O.mode===m}">${l}</button>`;
   const body=O.mode==='card'?cardHTML():O.mode==='quiz'?quizHTML():listHTML();
   return T.siteNav('vocab')+`<div class="wrap vdeck">
-    <div class="hero"><a class="btn sm" href="#vocab" style="justify-self:start">← Tất cả bài</a><div class="eyebrow">${esc(set.eyebrow)}</div><h1>${esc(set.title)}</h1>
+    <div class="hero"><a class="btn sm ghost" href="#vocab">${T.ICON.back} Tất cả bài</a><div class="eyebrow">${esc(set.eyebrow)}</div><h1>${esc(set.title)}</h1>
      <div class="facts"><span><b>${st.t}</b> từ</span><span>Đã thuộc <b>${st.k}</b></span><span>Chưa thuộc <b>${st.l}</b></span><span>Chưa học <b>${st.n}</b></span>${st.k||st.l?'<button class="lnk" data-v="reset">Xóa tiến độ bài này</button>':''}</div></div>
     <div class="tabs vtabs" role="tablist">${tab('card','Flashcard')}${tab('quiz','Trắc nghiệm')}${tab('list','Danh sách từ')}</div>
     ${optsHTML()}
@@ -262,6 +264,7 @@ document.addEventListener('click',e=>{
     case 'mok': { const f=U.modal.fn; U.modal=null; f(); rerender(); break; }
   }
 });
+document.addEventListener('toggle',e=>{if(e.target.matches&&e.target.matches('details.vopts'))U.optOpen=e.target.open},true);
 document.addEventListener('input',e=>{
   if(e.target.id==='vq'){U.q=e.target.value;rerender(true)}
   if(e.target.id==='vlq'){U.listQ=e.target.value;rerender(true)}

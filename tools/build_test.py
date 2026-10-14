@@ -44,13 +44,19 @@ def parse(md_path, graphics):
         if part in (3,4,6,7):
             pas, exp, mode = [], [], None
             for l in seg[:fq]:
-                if l.startswith('>'):
-                    mode = 'p'; pas.append(l[1:].lstrip() if l.strip() != '>' else ''); continue
-                if l.startswith('**Questions'):
-                    g['title'] = l.strip('*').strip(); continue
+                if mode == 'e': exp.append(l); continue
                 if l.startswith('**Giải thích:**'):
                     mode = 'e'; continue
-                if mode == 'e': exp.append(l)
+                if l.startswith('**Questions') and not g['title']:
+                    g['title'] = l.strip('*').strip(); continue
+                if l.startswith('>'):
+                    mode = 'p'; pas.append(l[1:].lstrip() if l.strip() != '>' else ''); continue
+                # Part 6/7: bảng, tiêu đề... nằm giữa các khối '>' cũng là một phần của bài đọc
+                if part in (6, 7) and (mode == 'p' or l.strip()):
+                    mode = 'p'
+                    if l.startswith('|') and pas and pas[-1].strip() and not pas[-1].startswith('|'): pas.append('')
+                    if pas and pas[-1].startswith('|') and not l.startswith('|') and l.strip(): pas.append('')
+                    pas.append(l)
             g['passage'] = '\n'.join(pas).strip(); g['expl'] = '\n'.join(exp).strip()
             groups.append(g)
         idx = [k for k,l in enumerate(seg) if NUMRE.match(l)] + [len(seg)]

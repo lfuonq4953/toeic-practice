@@ -35,5 +35,23 @@ window.MANIFEST = [
     "questions": 200,
     "minutes": 120,
     "added": "2026-10-14"
+  },
+  {
+    "id": "test-05",
+    "title": "TOEIC Test 05",
+    "subtitle": "Bộ đề thi thử sát đề thi thật 2025 – đề số 05",
+    "source": "Tài Liệu Ôn Thi Group",
+    "questions": 200,
+    "minutes": 120,
+    "added": "2026-10-14"
+  },
+  {
+    "id": "test-06",
+    "title": "TOEIC Test 06",
+    "subtitle": "Bộ đề thi thử sát đề thi thật 2025 – đề số 06",
+    "source": "Tài Liệu Ôn Thi Group",
+    "questions": 200,
+    "minutes": 120,
+    "added": "2026-10-14"
   }
 ];

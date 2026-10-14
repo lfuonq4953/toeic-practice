@@ -4,6 +4,7 @@ Website thi thử TOEIC chạy hoàn toàn trên trình duyệt (HTML/CSS/JS thu
 
 ## Tính năng
 Website có hai chuyên mục riêng, chuyển qua thanh trên cùng: **Luyện đề** và **Từ vựng**.
+Nút **Aa** ở góc phải chỉnh cỡ chữ (4 mức) và giao diện sáng/tối/tự động; lựa chọn được lưu trên trình duyệt.
 
 ### Từ vựng (`#vocab`)
 - 26 bài (≈1.300 từ) chia theo Part 1–4 và theo từ loại: động từ, danh từ, tính từ, trạng từ, giới từ & cụm từ.

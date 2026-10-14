@@ -64,3 +64,4 @@ Toàn bộ phần sau `**Giải thích:**` được lưu thành `expl` của nh�
 ```
 - Tiêu đề `**Questions a-b refer to ...**` -> `title`; các dòng `>` -> `passage` (markdown); phần sau `**Giải thích:**` -> bản dịch.
 - Chỗ trống Part 6 trong bài viết dạng `**131.\_\_\_\_\_\_\_**`.
+- Bảng, tiêu đề in đậm… nằm giữa các khối `>` (trước `**Giải thích:**`) cũng được tính là một phần của bài đọc. Nhiều bài trong một cụm nên ngăn bằng `> ---`.

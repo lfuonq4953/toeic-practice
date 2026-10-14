@@ -17,11 +17,53 @@ const mdi=s=>marked.parseInline(s||'');
 const $=s=>document.querySelector(s);
 const au=$('#au');
 const isVocab=()=>location.hash.slice(1).split('/')[0]==='vocab';
+/* ---------- tùy chỉnh hiển thị: cỡ chữ + giao diện sáng/tối ---------- */
+const PKEY='toeic:prefs';
+let PREF={fs:'m',theme:'auto'};
+try{Object.assign(PREF,JSON.parse(localStorage.getItem(PKEY))||{})}catch(e){}
+const FS={s:'15px',m:'16px',l:'18px',xl:'20px'};
+function applyPrefs(){
+  const r=document.documentElement;
+  r.style.fontSize=FS[PREF.fs]||'16px';
+  r.setAttribute('data-fs',PREF.fs);
+  if(PREF.theme==='auto')r.removeAttribute('data-theme'); else r.setAttribute('data-theme',PREF.theme);
+  const dark=PREF.theme==='dark'||(PREF.theme==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);
+  const m=document.querySelector('meta[name=theme-color]'); if(m)m.content=dark?'#11151c':'#f5f4ef';
+}
+applyPrefs();
+const ICON={
+  sun:'<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6"/><path d="M10 1.5v2.2M10 16.3v2.2M1.5 10h2.2M16.3 10h2.2M4 4l1.5 1.5M14.5 14.5 16 16M4 16l1.5-1.5M14.5 5.5 16 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  type:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 15.5 6.2 4.5h1.2l4.2 11M3.6 11.6h6.4M12.5 15.5l2.7-7h.9l2.7 7M13.5 13h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  head:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="13.5" width="4.5" height="7" rx="1.6"/><rect x="16.5" y="13.5" width="4.5" height="7" rx="1.6"/></svg>',
+  book:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 5.5C6 4.3 9 4.3 12 6c3-1.7 6-1.7 8.5-.5v13c-2.5-1.2-5.5-1.2-8.5.5-3-1.7-6-1.7-8.5-.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 6v13" stroke="currentColor" stroke-width="1.8"/></svg>',
+  cards:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 3h10.5A2.5 2.5 0 0 1 21 5.5V16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  arrow:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5.5 15.5 10 11 14.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  back:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16 10H5M9 5.5 4.5 10 9 14.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+};
+const prefsBtn=()=>`<button class="ibtn" data-act="prefs" aria-label="Cỡ chữ và giao diện" title="Cỡ chữ và giao diện" aria-expanded="${!!(window.UIP&&UIP.open)}">${ICON.type}</button>`;
+function prefsHTML(){
+  const o=(k,v,l)=>`<button class="seg-b" data-act="pref" data-k="${k}" data-v="${v}" aria-pressed="${PREF[k]===v}">${l}</button>`;
+  return `<div class="prefs" role="dialog" aria-label="Tùy chỉnh hiển thị"><div class="pf-h">Hiển thị</div>
+   <div class="pf-r"><span>Cỡ chữ</span><div class="seg">${o('fs','s','<small>A</small>')}${o('fs','m','A')}${o('fs','l','<big>A</big>')}${o('fs','xl','<b>A</b>')}</div></div>
+   <div class="pf-r"><span>Giao diện</span><div class="seg">${o('theme','auto','Tự động')}${o('theme','light','Sáng')}${o('theme','dark','Tối')}</div></div>
+   <p class="pf-n">Lưu trên trình duyệt này.</p></div>`;
+}
+window.UIP={open:false};
+function paintPrefs(){
+  let el=document.getElementById('prefs-pop');
+  if(!UIP.open){if(el)el.remove();document.querySelectorAll('[data-act=prefs]').forEach(b=>b.setAttribute('aria-expanded','false'));return}
+  if(!el){el=document.createElement('div');el.id='prefs-pop';document.body.appendChild(el)}
+  el.innerHTML=prefsHTML();
+  const b=[...document.querySelectorAll('[data-act=prefs]')].find(x=>x.offsetParent);
+  if(b){const r=b.getBoundingClientRect();el.style.top=(r.bottom+8)+'px';el.style.right=Math.max(12,innerWidth-r.right)+'px';b.setAttribute('aria-expanded','true')}
+}
 /* thanh điều hướng chung: Luyện đề | Từ vựng */
 function siteNav(active){
-  return `<nav class="site wrap" aria-label="Chuyên mục"><a class="logo" href="#">TOEIC<span>luyện thi</span></a><div class="snav"><a href="#" ${active==='tests'?'aria-current="page"':''}>Luyện đề</a><a href="#vocab" ${active==='vocab'?'aria-current="page"':''}>Từ vựng</a></div></nav>`;
+  return `<header class="site"><div class="wrap sitein"><a class="logo" href="#" aria-label="Trang Luyện đề"><span class="lm">T</span><span class="lt">TOEIC<small>Luyện thi mỗi ngày</small></span></a>
+   <nav class="snav" aria-label="Chuyên mục"><a href="#" ${active==='tests'?'aria-current="page"':''}>${ICON.book}<span>Luyện đề</span></a><a href="#vocab" ${active==='vocab'?'aria-current="page"':''}>${ICON.cards}<span>Từ vựng</span></a></nav>${prefsBtn()}</div></header>`;
 }
-window.TOEIC={siteNav,esc,loadScript:src=>loadScript(src)};
+window.TOEIC={siteNav,esc,ICON,prefsBtn,loadScript:src=>loadScript(src)};
 
 /* ---------- state ---------- */
 let S;
@@ -121,16 +163,37 @@ async function openTest(id){
   else if(S.view==='review'&&S.part<=4)setAudio(S.part);
   render(); scrollTo(0,0);
 }
+function testState(id){
+  const r={st:'Chưa làm',cls:'',pc:0,score:null,doing:null,prac:0};
+  try{const j=JSON.parse(localStorage.getItem('toeic:'+id));
+    if(j&&j.prac)r.prac=Object.keys(j.prac.ans||{}).length;
+    if(j&&j.exam&&j.exam.submitted){r.score=j.exam.score?j.exam.score.sL+j.exam.score.sR:null;r.st=r.score!==null?`Đã thi · ${r.score} điểm`:'Đã nộp bài';r.cls='done';r.pc=100}
+    else if(j&&j.exam){const n=Object.keys(j.exam.ans||{}).length;r.doing=n;r.st=`Đang thi dở · ${n}/200`;r.cls='doing';r.pc=n/2}
+    else if(r.prac){r.st=`Đã luyện ${r.prac}/200 câu`;r.cls='prac';r.pc=r.prac/2}
+  }catch(e){}
+  return r;
+}
 function libHTML(){
-  const cards=MANIFEST.map(t=>{
-    let st='Chưa làm',cls='';
-    try{const j=JSON.parse(localStorage.getItem('toeic:'+t.id));
-      if(j&&j.exam&&j.exam.submitted){st=j.exam.score?`Đã thi · ${j.exam.score.sL+j.exam.score.sR} điểm ước tính`:'Đã nộp bài';cls='done'}
-      else if(j&&j.exam){st='Đang làm dở';cls='doing'}
-      else if(j&&j.prac&&Object.keys(j.prac.ans||{}).length){st='Đã luyện '+Object.keys(j.prac.ans).length+' câu';cls='doing'}}catch(e){}
-    return `<button class="tcard" data-act="open" data-id="${esc(t.id)}"><span class="eyebrow">${esc(t.source||'')}</span><span class="tt">${esc(t.title)}</span><span class="ts">${esc(t.subtitle||'')}</span><span class="tm"><span>${t.questions||200} câu · ${t.minutes||120} phút</span><span class="st ${cls}">${st}</span></span></button>`;
+  const states=MANIFEST.map(t=>({t,s:testState(t.id)}));
+  const done=states.filter(x=>x.s.score!==null), best=done.length?Math.max(...done.map(x=>x.s.score)):null;
+  const doing=states.find(x=>x.s.doing!==null);
+  let known=0;try{const v=JSON.parse(localStorage.getItem('toeic:vocab'));if(v&&v.s)known=Object.values(v.s).filter(x=>x===1).length}catch(e){}
+  const cards=states.map(({t,s},i)=>{
+    const num=(t.id.match(/\d+/)||[String(i+1)])[0].padStart(2,'0');
+    return `<button class="tcard ${s.cls}" data-act="open" data-id="${esc(t.id)}"><span class="tnum" aria-hidden="true">${esc(num)}</span><span class="tbody"><span class="tt">${esc(t.title)}</span><span class="ts">${esc(t.subtitle||'')}</span>
+      <span class="tm"><span>${t.questions||200} câu · ${t.minutes||120} phút</span><span class="st ${s.cls}">${s.st}</span></span><span class="mini"><i style="width:${s.pc}%"></i></span></span></button>`;
   }).join('');
-  return siteNav('tests')+`<div class="wrap home"><div class="hero"><div class="eyebrow">Luyện đề</div><h1>Thư viện đề thi</h1><p>Chọn một đề để thi thử toàn bộ hoặc luyện từng Part. Kết quả của mỗi đề được lưu riêng trên trình duyệt này.</p></div>${UI.err?`<div class="dirs" role="alert">${esc(UI.err)}</div>`:''}<div class="parts tests">${cards||'<div class="empty">Chưa có đề nào trong tests/manifest.js.</div>'}</div></div>`;
+  const strip=`<div class="quick">
+    ${doing?`<button class="qcard warm" data-act="open" data-id="${esc(doing.t.id)}"><span class="qi">${ICON.clock}</span><span><b>Tiếp tục ${esc(doing.t.title)}</b><small>Bài thi đang làm dở · ${doing.s.doing}/200 câu</small></span>${ICON.arrow}</button>`:''}
+    <a class="qcard" href="#vocab"><span class="qi">${ICON.cards}</span><span><b>Học từ vựng</b><small>${known?`Đã thuộc ${known} từ · ôn tiếp bằng flashcard`:'Flashcard theo Part và theo từ loại'}</small></span>${ICON.arrow}</a>
+  </div>`;
+  return siteNav('tests')+`<main class="wrap home">
+   <section class="hero"><div class="eyebrow">Luyện đề TOEIC</div><h1>Chọn một đề để bắt đầu</h1><p>Thi thử đủ 200 câu theo đúng thời gian, hoặc luyện từng Part và xem lời giải ngay sau mỗi câu. Kết quả được lưu trên trình duyệt này.</p>
+    <div class="facts"><span><b>${MANIFEST.length}</b> đề</span><span><b>${done.length}</b> đã thi</span>${best!==null?`<span>Điểm cao nhất <b>${best}</b></span>`:''}</div></section>
+   ${strip}
+   ${UI.err?`<div class="dirs" role="alert">${esc(UI.err)}</div>`:''}
+   <section><div class="sec-h"><h2>Thư viện đề</h2><span>Nhấn vào một đề để chọn thi thử hoặc luyện Part</span></div>
+   <div class="tests">${cards||'<div class="empty">Chưa có đề nào trong tests/manifest.js.</div>'}</div></section></main>`;
 }
 function modal(msg,okLabel,fn){UI.modal={msg,okLabel,fn};render(true)}
 
@@ -142,29 +205,31 @@ function partStats(p){
 }
 function homeHTML(){
   const ex=S.exam;
-  let cont='';
+  let side='';
   if(ex&&!ex.submitted){
     const n=Object.keys(ex.ans).length;
-    cont=`<div class="card"><h2>Bài thi đang làm dở</h2><p>Đã trả lời ${n}/200 câu, đang ở phần ${ex.phase==='L'?'Listening':'Reading'}.</p><div class="row"><button class="btn pri" data-act="resume">Tiếp tục làm bài</button></div></div>`;
+    side=`<div class="card accent-l"><div class="eyebrow">Đang làm dở</div><h2>Bài thi chưa nộp</h2><p>Đã trả lời <b>${n}/200</b> câu, đang ở phần ${ex.phase==='L'?'Listening':'Reading'}.</p><div class="mini lg"><i style="width:${n/2}%"></i></div><div class="row"><button class="btn pri" data-act="resume">Tiếp tục làm bài ${ICON.arrow}</button></div></div>`;
   } else if(ex&&ex.submitted){
     const s=score();
-    cont=`<div class="card"><h2>Kết quả lần thi gần nhất</h2><div class="last"><div><small>Điểm ước tính</small><span class="big">${s.sL+s.sR}</span></div><div><small>Listening</small><span class="big">${s.L}<span class="note">/100</span></span></div><div><small>Reading</small><span class="big">${s.R}<span class="note">/100</span></span></div></div><div class="row" style="margin-top:16px"><button class="btn" data-act="result">Xem kết quả</button><button class="btn" data-act="review">Xem lại đáp án</button></div></div>`;
+    side=`<div class="card"><div class="eyebrow">Lần thi gần nhất</div><div class="last"><div><small>Điểm ước tính</small><span class="big">${s.sL+s.sR}<span class="note">/990</span></span></div><div><small>Listening</small><span class="big sm">${s.L}<span class="note">/100</span></span></div><div><small>Reading</small><span class="big sm">${s.R}<span class="note">/100</span></span></div></div><div class="row"><button class="btn" data-act="result">Xem kết quả</button><button class="btn" data-act="review">Xem lại đáp án</button></div></div>`;
+  } else {
+    side=`<div class="card soft"><div class="eyebrow">Mẹo</div><h2>Mới bắt đầu?</h2><p>Luyện từng Part để làm quen dạng câu hỏi và đọc lời giải, sau đó thi thử toàn bộ để biết điểm ước tính.</p></div>`;
   }
-  const pcards=[1,2,3,4,5,6,7].map(p=>{
-    const st=partStats(p),P=PARTS[p];
-    return `<button class="pcard" data-act="prac" data-part="${p}"><span class="pn">Part ${p}</span><span class="pt">${P.n}</span><span class="pv">${P.vi}</span><span class="pm"><span>${st.t} câu${p<=4?' · có audio':''}</span><span>${st.a?`${st.c}/${st.a} đúng`:'Chưa làm'}</span></span><span class="mini"><i style="width:${st.a/st.t*100}%"></i></span></button>`;
-  }).join('');
-  return `<div class="wrap home">
-   <div class="hero"><button class="btn sm" data-act="lib" style="justify-self:start">← Tất cả đề</button><div class="eyebrow">${esc(META.source||'')}</div><h1>${esc(META.title)}</h1>
+  const pcard=p=>{
+    const st=partStats(p),P=PARTS[p],pc=st.a/st.t*100;
+    return `<button class="pcard ${st.a===st.t?'full':''}" data-act="prac" data-part="${p}"><span class="ph"><span class="pn">Part ${p}</span><span class="pq">${st.t} câu</span></span><span class="pt">${P.vi}</span><span class="pv">${P.n}</span><span class="pm"><span>${st.a?`Đúng ${st.c}/${st.a}`:'Chưa làm'}</span><span>${st.a?Math.round(pc)+'%':''}</span></span><span class="mini"><i style="width:${pc}%"></i></span></button>`;
+  };
+  return siteNav('tests')+`<main class="wrap home">
+   <section class="hero"><button class="btn sm ghost" data-act="lib">${ICON.back} Tất cả đề</button><div class="eyebrow">${esc(META.source||'')}</div><h1>${esc(META.title)}</h1>
    <p>${esc(META.subtitle||'Đề đầy đủ gồm Listening và Reading, có audio, chấm điểm tự động, lời giải chi tiết và bản dịch tiếng Việt.')}</p>
-   <div class="facts"><span><b>${Q.length}</b> câu</span><span>Listening <b>45</b> phút</span><span>Reading <b>75</b> phút</span><span><b>7</b> Part</span></div></div>
+   <div class="facts"><span><b>${Q.length}</b> câu</span><span>Listening <b>45</b> phút</span><span>Reading <b>75</b> phút</span><span><b>7</b> Part</span></div></section>
    <div class="modes">
-    <div class="card"><h2>Thi thử toàn bộ</h2><p>Làm bài theo đúng quy trình: nghe audio 4 Part liên tục, sau đó làm Reading trong 75 phút. Chỉ xem đáp án sau khi nộp bài.</p><div class="row"><button class="btn pri" data-act="start">${ex&&!ex.submitted?'Làm bài mới':'Bắt đầu thi thử'}</button><span class="note">Nên đeo tai nghe, audio phát một lần.</span></div></div>
-    ${cont||`<div class="card"><h2>Luyện theo từng Part</h2><p>Chọn một Part bên dưới. Đáp án và lời giải hiện ngay sau mỗi câu, audio có thể tua và đổi tốc độ.</p></div>`}
+    <div class="card feature"><div class="eyebrow">Mô phỏng phòng thi</div><h2>Thi thử toàn bộ</h2><p>Nghe audio 4 Part liên tục, sau đó làm Reading trong 75 phút. Đáp án và lời giải chỉ hiện sau khi nộp bài.</p><div class="row"><button class="btn pri lg" data-act="start">${ex&&!ex.submitted?'Làm bài mới':'Bắt đầu thi thử'} ${ICON.arrow}</button><span class="note">Nên đeo tai nghe · audio phát một lần</span></div></div>
+    ${side}
    </div>
-   <div><div class="sec-h"><h2>Luyện theo Part</h2><span>Đáp án hiện ngay sau mỗi câu</span></div><div class="parts">${pcards}</div></div>
-   ${cont?'':''}
-  </div>`;
+   <section><div class="sec-h"><h2><span class="sh-i">${ICON.head}</span>Listening</h2><span>Có audio, tua và đổi tốc độ được</span></div><div class="parts">${[1,2,3,4].map(pcard).join('')}</div></section>
+   <section><div class="sec-h"><h2><span class="sh-i">${ICON.book}</span>Reading</h2><span>Đáp án và lời giải hiện ngay sau mỗi câu</span></div><div class="parts">${[5,6,7].map(pcard).join('')}</div></section>
+  </main>`;
 }
 
 function qpass(q){
@@ -279,7 +344,10 @@ function headerHTML(){
   }
   const fb=rev?`<div class="fbar wrap" style="padding-bottom:8px">`+[['all','Tất cả'],['wrong','Câu sai'],['blank','Chưa làm'],['flag','Đã đánh dấu']].map(([k,l])=>`<button class="chip" data-act="filter" data-f="${k}" aria-pressed="${S.filter===k}">${l}</button>`).join('')+`</div>`:'';
   const title=prac?`Luyện Part ${S.part}`:rev?'Xem lại đáp án':(S.exam&&S.exam.phase==='R'?'Reading':'Listening');
-  return `<div class="hdr" id="hdr"><div class="wrap"><div class="hrow"><div class="brand">${esc(META.title)} <small>${title}</small></div>${right}</div>${tabs}</div>${fb}${audioHTML()}</div>`;
+  const a=curAns(), tot=prac?PARTS[S.part].r[1]-PARTS[S.part].r[0]+1:200;
+  const n=prac?Q.filter(q=>q.part===S.part&&a[q.n]!==undefined).length:Object.keys(a).length;
+  const back=exam?'':`<button class="ibtn" data-act="home" aria-label="Về trang đề" title="Về trang đề">${ICON.back}</button>`;
+  return `<div class="hdr" id="hdr"><div class="wrap"><div class="hrow">${back}<div class="brand">${esc(META.title)} <small>${title}</small></div>${right}${prefsBtn()}</div>${tabs}</div>${fb}${audioHTML()}<div class="hprog" aria-hidden="true"><i style="width:${n/tot*100}%"></i></div></div>`;
 }
 function resultHTML(){
   const s=score(), tot=s.sL+s.sR;
@@ -290,7 +358,7 @@ function resultHTML(){
   }).join('');
   const sorted=[1,2,3,4,5,6,7].sort((a,b)=>s.per[a].c/s.per[a].t-s.per[b].c/s.per[b].t);
   const w=sorted[0];
-  return `<div class="wrap res">
+  return siteNav('tests')+`<div class="wrap res">
    <div class="hero"><div class="eyebrow">Kết quả thi thử</div><h1>Bạn đúng ${s.L+s.R}/200 câu</h1><p>${blank?`Còn ${blank} câu chưa trả lời. `:''}Part cần ôn thêm nhiều nhất là Part ${w} (${PARTS[w].vi}), đúng ${s.per[w].c}/${s.per[w].t} câu.</p></div>
    <div class="scores"><div class="sc main"><small>Tổng điểm ước tính</small><div class="n">${tot}<em> / 990</em></div><p>Quy đổi gần đúng, không phải điểm chính thức.</p></div>
     <div class="sc"><small>Listening</small><div class="n">${s.sL}<em> / 495</em></div><p>${s.L}/100 câu đúng</p></div>
@@ -334,6 +402,8 @@ document.addEventListener('click',e=>{
   if(a==='mclose'){ if(t.classList.contains('ov')&&e.target!==t)return; UI.modal=null;render(true);return; }
   if(a==='mok'){const f=UI.modal.fn;UI.modal=null;render(true);f();return;}
   switch(a){
+   case 'prefs': e.stopPropagation(); UIP.open=!UIP.open; paintPrefs(); return;
+   case 'pref': { const k=t.dataset.k; PREF[k]=t.dataset.v; try{localStorage.setItem(PKEY,JSON.stringify(PREF))}catch(x){} applyPrefs(); paintPrefs(); const h=$('#hdr'); if(h)document.documentElement.style.setProperty('--hdr',h.offsetHeight+'px'); return; }
    case 'lib': library(); break;
    case 'open': openTest(t.dataset.id); break;
    case 'start':
@@ -373,11 +443,15 @@ document.addEventListener('click',e=>{
   }
 });
 document.addEventListener('click',e=>{
+  if(UIP.open&&!e.target.closest('#prefs-pop')&&!e.target.closest('[data-act=prefs]')){UIP.open=false;paintPrefs()}
   if(UI.pal&&!e.target.closest('#side')&&!e.target.closest('.palbtn')){UI.pal=false;document.body.classList.remove('pal-open')}
 },true);
 addEventListener('resize',()=>{const h=$('#hdr');if(h)document.documentElement.style.setProperty('--hdr',h.offsetHeight+'px')});
 
+addEventListener('keydown',e=>{if(e.key==='Escape'){if(UIP.open){UIP.open=false;paintPrefs()} if(UI.pal){UI.pal=false;document.body.classList.remove('pal-open')} if(UI.modal){UI.modal=null;render(true)}}});
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyPrefs)}catch(e){}
 addEventListener('hashchange',()=>{
+  UIP.open=false;paintPrefs();
   if(isVocab()){stopAudio();clearInterval(tick);UI.pal=false;document.body.classList.remove('pal-open');render();}
   else library();
 });
