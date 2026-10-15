@@ -1,0 +1,1 @@
+marked v12.0.2 — MIT License, Copyright (c) 2011-2024 Christopher Jeffrey and contributors. https://github.com/markedjs/marked

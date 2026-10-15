@@ -1,5 +1,5 @@
 """Bóc tách nội dung bộ luyện theo Part từ văn bản OCR của file DA (đáp án + giải thích)."""
-import re, sys
+import re, sys, os
 sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
 from ocrlines import load, BLANK
 VI=re.compile(r'[àáảãạăắằẳẵặâấầẩẫậđèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵ]',re.I)
@@ -100,7 +100,7 @@ _TYPO={'addlition':'addition','aninternational':'an international','atiract':'at
  'proJject':'project','putit':'put it','recImbursement':'reimbursement','recception':'reception','recferences':'references','reftigerator':'refrigerator',
  'reporta':'report a','skilis':'skills','somce':'some','spcaker\'s':"speaker's",'spcakers':'speakers','suuch':'such','svimming':'swimming',
  'toinclude':'to include','tomorrowfs':"tomorrow's",'vegatables':'vegetables','voman':'woman','vwhen':'when','wefll':"we'll",'willinclude':'will include',
- 'wvoman':'woman','1Us':"it's",'1m':'in','1sn\'t':"Isn't",'1ncorrcct':'incorrect','Ooverseas':'overseas','welll':"we'll",'Who*':"Who's",'lạ':'it.','lí':'If','company\'3s':"company's",'September2':'September','ModemÉn':'Modern','stAaff':'staff','organiZed':'organized'}
+ 'wvoman':'woman','Oputon':'Option','cnd':'end','Vinvl':'Vinyl','Wimtcr':'Winter','1Us':"it's",'1m':'in','1sn\'t':"Isn't",'1ncorrcct':'incorrect','Ooverseas':'overseas','welll':"we'll",'Who*':"Who's",'lạ':'it.','lí':'If','company\'3s':"company's",'September2':'September','ModemÉn':'Modern','stAaff':'staff','organiZed':'organized'}
 _TYPO_RE=re.compile(r"(?<![\w])("+'|'.join(re.escape(k) for k in sorted(_TYPO,key=len,reverse=True))+r")(?![\w])")
 def fix_typo(s): return _TYPO_RE.sub(lambda m:_TYPO[m.group(1)],s)
 def clean_en(s):
@@ -245,6 +245,7 @@ def parse_listen34(d, part):
             if oj is not None:
                 a_,b_=seg[fi],seg[oj]
                 gbox=(a_['page'],a_['bottom'],b_['page'],b_['top'])
+        if fi is not None and re.search(r'look at the graphic',T[fi],re.I) and not re.search(r'graphic',stem,re.I): stem='Look at the graphic. '+stem
         qs.append({'n':n,'part':part,'g':g['id'] if g else None,'stem':clean_en(stem),'stem_vi':stem_vi,'opts':opts,'vi':vis,'ans':'ABCD'.index(ans),'info':info,'pos':pos,'gbox':gbox})
         if g: g['hi']=n
     for ln in L:

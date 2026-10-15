@@ -20,6 +20,8 @@ Nút **Aa** ở góc phải chỉnh cỡ chữ (4 mức) và giao diện sáng/t
 - **Luyện từng Part**: đáp án và giải thích hiện ngay sau mỗi câu; audio tua được, đổi tốc độ.
 - **Kết quả**: điểm ước tính (thang 990, quy đổi gần đúng), kết quả theo Part.
 - **Xem lại**: lọc câu sai / chưa làm / đã đánh dấu, kèm transcript và bản dịch.
+- **Sổ câu sai** (`#wrong`): câu làm sai khi luyện hoặc khi nộp bài được tự lưu; làm lại ngay trong sổ, đúng thì chuyển sang "Đã làm đúng", sai lại thì về "Cần ôn". Lọc theo Part, sắp xếp theo mới nhất / sai nhiều nhất.
+- **Dùng offline**: cài như ứng dụng (PWA). Giao diện và từ vựng tự lưu; mỗi đề có nút "Tải về để luyện offline" (data, ảnh, audio), tab bộ luyện theo Part có nút tải cả Part.
 - Giao diện sáng/tối theo hệ thống, dùng được trên điện thoại. Tiến độ lưu bằng `localStorage`.
 
 ## Cấu trúc
@@ -33,6 +35,10 @@ tests/<id>/crops.json             tọa độ cắt ảnh từ PDF (để làm l
 tests/pK-NN/                      bộ luyện theo Part (K = 1..5), cùng cấu trúc, meta có kind:'part'
 fonts/                            font STIX Two (tự host, không cần Google Fonts)
 vocab.js, vocab/data.js           phần Từ vựng (data.js tạo bằng tools/build_vocab.py)
+wrong.js                          Sổ câu sai (localStorage 'toeic:wrong')
+offline.js, sw.js                 tải đề về máy + service worker (tăng VERSION trong sw.js khi đổi danh sách file giao diện)
+manifest.webmanifest, icons/      cài đặt như ứng dụng
+vendor/marked.min.js              thư viện markdown (MIT), để chạy được offline
 tools/                            build_test.py, crop_images.py, validate_test.py, build_vocab.py
 tools/partsets/                   OCR + tạo bộ luyện theo Part từ file DA (PDF) trong De_PartK
 docs/ADD_NEW_TEST.md              prompt giao cho AI để thêm đề mới
@@ -46,7 +52,7 @@ python3 -m http.server 8000   # mở http://localhost:8000
 ```
 
 ## Đăng lên GitHub Pages
-Settings → Pages → Deploy from a branch → `main` / `(root)`. Trang cần internet để tải `marked` (cdnjs); font đã nằm sẵn trong `fonts/`.
+Settings → Pages → Deploy from a branch → `main` / `(root)`. Không cần CDN nào: font, `marked` đều nằm trong repo. Tính năng offline chỉ chạy khi mở qua https (GitHub Pages) hoặc `http://localhost`, không chạy khi mở file trực tiếp.
 
 ## Thêm đề mới
 Xem `docs/ADD_NEW_TEST.md` (có prompt sẵn). Tóm tắt bằng tay:
@@ -65,6 +71,7 @@ cd tools/partsets
 LUYENDE=E:/2026/TA/LuyenDe OCR_DIR=ocr TESSDATA=/duong/dan/tessdata_best bash ocr_tsv2.sh "<file DA.pdf>" ocr/p4_01
 LUYENDE=E:/2026/TA/LuyenDe OCR_DIR=ocr python3 build_sets.py p4_01      # -> tests/p4-01
 OCR_DIR=ocr python3 update_manifest.py
+python3 ../manifest_sizes.py        # ghi dung lượng tải offline của từng đề
 ```
 Lưu ý: file DA Part 5–6 không có đáp án Part 6 nên chỉ có Part 5; Part 4 Đề 06 không có audio.
 

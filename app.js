@@ -19,7 +19,8 @@ const md=s=>marked.parse(s||'',{breaks:true});
 const mdi=s=>marked.parseInline(s||'');
 const $=s=>document.querySelector(s);
 const au=$('#au');
-const isVocab=()=>location.hash.slice(1).split('/')[0]==='vocab';
+const route=()=>location.hash.slice(1).split('/')[0];
+const isVocab=()=>route()==='vocab', isWrong=()=>route()==='wrong';
 /* ---------- tùy chỉnh hiển thị: cỡ chữ + giao diện sáng/tối ---------- */
 const PKEY='toeic:prefs';
 let PREF={fs:'m',theme:'auto'};
@@ -42,6 +43,7 @@ const ICON={
   cards:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 3h10.5A2.5 2.5 0 0 1 21 5.5V16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
   clock:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
   arrow:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5.5 15.5 10 11 14.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  note:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h9.5L19 7v13.5H6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m9.5 10.5 5 5M14.5 10.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
   back:'<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16 10H5M9 5.5 4.5 10 9 14.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 };
 const prefsBtn=()=>`<button class="ibtn" data-act="prefs" aria-label="Cỡ chữ và giao diện" title="Cỡ chữ và giao diện" aria-expanded="${!!(window.UIP&&UIP.open)}">${ICON.type}</button>`;
@@ -61,12 +63,13 @@ function paintPrefs(){
   const b=[...document.querySelectorAll('[data-act=prefs]')].find(x=>x.offsetParent);
   if(b){const r=b.getBoundingClientRect();el.style.top=(r.bottom+8)+'px';el.style.right=Math.max(12,innerWidth-r.right)+'px';b.setAttribute('aria-expanded','true')}
 }
+const wbBadge=()=>{const c=window.WrongBook?WrongBook.counts().open:0;return c?`<b class="nbadge" aria-label="${c} câu cần ôn">${c>99?'99+':c}</b>`:''};
 /* thanh điều hướng chung: Luyện đề | Từ vựng */
 function siteNav(active){
   return `<header class="site"><div class="wrap sitein"><a class="logo" href="#" aria-label="Trang Luyện đề"><span class="lm">T</span><span class="lt">TOEIC<small>Luyện thi mỗi ngày</small></span></a>
-   <nav class="snav" aria-label="Chuyên mục"><a href="#" ${active==='tests'?'aria-current="page"':''}>${ICON.book}<span>Luyện đề</span></a><a href="#vocab" ${active==='vocab'?'aria-current="page"':''}>${ICON.cards}<span>Từ vựng</span></a></nav>${prefsBtn()}</div></header>`;
+   <nav class="snav" aria-label="Chuyên mục"><a href="#" ${active==='tests'?'aria-current="page"':''}>${ICON.book}<span>Luyện đề</span></a><a href="#vocab" ${active==='vocab'?'aria-current="page"':''}>${ICON.cards}<span>Từ vựng</span></a><a href="#wrong" title="Sổ câu sai" ${active==='wrong'?'aria-current="page"':''}>${ICON.note}<span>Câu sai</span>${wbBadge()}</a></nav>${prefsBtn()}</div></header>`;
 }
-window.TOEIC={siteNav,esc,ICON,prefsBtn,loadScript:src=>loadScript(src)};
+window.TOEIC={siteNav,esc,ICON,prefsBtn,loadScript:src=>loadScript(src),openTest:id=>openTest(id),rerender:()=>render(true)};
 
 /* ---------- state ---------- */
 let S;
@@ -145,6 +148,7 @@ function toReading(){
 }
 function submitExam(){
   stopAudio();clearInterval(tick);
+  if(window.WrongBook)Q.forEach(q=>{const v=S.exam.ans[q.n];if(v!==undefined&&v!==q.ans)WrongBook.add(UI.test,q)});
   {const sc=score();S.exam.score={L:sc.L,R:sc.R,sL:sc.sL,sR:sc.sR};}S.exam.submitted=true;S.exam.subAt=Date.now();S.view='result';save();render();scrollTo(0,0);
 }
 function startPractice(p){
@@ -194,19 +198,21 @@ function libHTML(){
   const fs=states.filter(x=>x.t.kind!=='part');
   const done=fs.filter(x=>x.s.score!==null), best=done.length?Math.max(...done.map(x=>x.s.score)):null;
   const doing=states.find(x=>x.s.doing!==null);
+  const wbc=window.WrongBook?WrongBook.counts():{open:0,all:0};
   let known=0;try{const v=JSON.parse(localStorage.getItem('toeic:vocab'));if(v&&v.s)known=Object.values(v.s).filter(x=>x===1).length}catch(e){}
   const card=({t,s},i)=>{
     const num=(t.id.match(/(\d+)$/)||[0,String(i+1)])[1].padStart(2,'0');
     return `<button class="tcard ${s.cls}" data-act="open" data-id="${esc(t.id)}"><span class="tnum" aria-hidden="true">${esc(num)}</span><span class="tbody"><span class="tt">${esc(t.title)}</span><span class="ts">${esc(t.subtitle||'')}</span>
-      <span class="tm"><span>${t.questions||200} câu · ${t.minutes||120} phút</span><span class="st ${s.cls}">${s.st}</span></span><span class="mini"><i style="width:${s.pc}%"></i></span></span></button>`;
+      <span class="tm"><span>${t.questions||200} câu · ${t.minutes||120} phút</span><span class="st ${s.cls}">${s.st}${window.Offline&&Offline.has(t.id)?' · <span class="off" title="Đã tải về máy">✓ Offline</span>':''}</span></span><span class="mini"><i style="width:${s.pc}%"></i></span></span></button>`;
   };
   if(!UI.setTab){try{UI.setTab=localStorage.getItem('toeic:setTab')}catch(e){} if(!SETG.some(g=>g.k===UI.setTab))UI.setTab='1'}
   const groups=SETG.filter(g=>sets.some(t=>setKey(t)===g.k));
   const cur=states.filter(x=>x.t.kind==='part'&&setKey(x.t)===UI.setTab);
   const setCard=({t,s})=>{const num=(t.id.match(/(\d+)$/)||[0,'?'])[1];
-    return `<button class="scard ${s.cls}" data-act="open" data-id="${esc(t.id)}"><span class="sn">Đề ${esc(num)}</span><span class="sm">${t.questions} câu${t.audio===false?' · không có audio':''}</span><span class="st ${s.cls}">${s.st}</span><span class="mini"><i style="width:${s.pc}%"></i></span></button>`};
+    return `<button class="scard ${s.cls}" data-act="open" data-id="${esc(t.id)}"><span class="sn">Đề ${esc(num)}</span><span class="sm">${t.questions} câu${t.audio===false?' · không có audio':''}${window.Offline&&Offline.has(t.id)?' · <span class="off">✓ Offline</span>':''}</span><span class="st ${s.cls}">${s.st}</span><span class="mini"><i style="width:${s.pc}%"></i></span></button>`};
   const strip=`<div class="quick">
     ${doing?`<button class="qcard warm" data-act="open" data-id="${esc(doing.t.id)}"><span class="qi">${ICON.clock}</span><span><b>Tiếp tục ${esc(doing.t.title)}</b><small>Bài đang làm dở · ${doing.s.doing}/${doing.t.questions||200} câu</small></span>${ICON.arrow}</button>`:''}
+    ${wbc.all?`<a class="qcard" href="#wrong"><span class="qi">${ICON.note}</span><span><b>Sổ câu sai</b><small>${wbc.open?`${wbc.open} câu cần ôn lại`:'Đã làm đúng lại tất cả câu sai'}</small></span>${ICON.arrow}</a>`:''}
     <a class="qcard" href="#vocab"><span class="qi">${ICON.cards}</span><span><b>Học từ vựng</b><small>${known?`Đã thuộc ${known} từ · ôn tiếp bằng flashcard`:'Flashcard theo Part và theo từ loại'}</small></span>${ICON.arrow}</a>
   </div>`;
   return siteNav('tests')+`<main class="wrap home">
@@ -218,7 +224,7 @@ function libHTML(){
    <div class="tests">${fs.map(card).join('')||'<div class="empty">Chưa có đề nào.</div>'}</div></section>
    ${sets.length?`<section id="sets"><div class="sec-h"><h2>Luyện theo từng Part</h2><span>Mỗi bộ là một đề ngắn của riêng một Part</span></div>
     <div class="ptabs" role="tablist">${groups.map(g=>{const n=sets.filter(t=>setKey(t)===g.k).length;return `<button class="ptab" role="tab" data-act="settab" data-k="${g.k}" aria-selected="${UI.setTab===g.k}"><b>${g.l}</b><small>${g.v} · ${n} đề</small></button>`}).join('')}</div>
-    <div class="sets">${cur.map(setCard).join('')||'<div class="empty">Chưa có bộ nào.</div>'}</div></section>`:''}
+    <div class="sets">${cur.map(setCard).join('')||'<div class="empty">Chưa có bộ nào.</div>'}</div>${window.Offline?Offline.bulkHTML(UI.setTab,cur.map(x=>x.t.id)):''}</section>`:''}
   </main>`;
 }
 function modal(msg,okLabel,fn){UI.modal={msg,okLabel,fn};render(true)}
@@ -255,7 +261,7 @@ function homeHTML(){
   return siteNav('tests')+`<main class="wrap home">
    <section class="hero"><button class="btn sm ghost" data-act="lib">${ICON.back} Tất cả đề</button><div class="eyebrow">${esc(META.source||'')}</div><h1>${esc(META.title)}</h1>
    <p>${esc(META.subtitle||'')}</p>
-   <div class="facts">${facts}</div></section>
+   <div class="facts">${facts}</div>${window.Offline?Offline.rowHTML(UI.test):''}</section>
    <div class="modes">${examCard}${side}</div>
    ${LP.length?`<section><div class="sec-h"><h2><span class="sh-i">${ICON.head}</span>Listening</h2><span>${noAudio?'Bộ này chưa có audio — vẫn xem được đề và lời giải':'Có audio, tua và đổi tốc độ được'}</span></div><div class="parts">${LP.map(pcard).join('')}</div></section>`:''}
    ${RP.length?`<section><div class="sec-h"><h2><span class="sh-i">${ICON.book}</span>Reading</h2><span>Đáp án và lời giải hiện ngay sau mỗi câu</span></div><div class="parts">${RP.map(pcard).join('')}</div></section>`:''}
@@ -400,7 +406,7 @@ function resultHTML(){
    <div class="hero"><div class="eyebrow">${isSet()?esc(META.title):'Kết quả thi thử'}</div><h1>Bạn đúng ${right}/${TOTAL} câu</h1>${sub?`<p>${sub}</p>`:''}</div>
    ${cards}
    ${TP.length>1?`<div class="card"><div class="sec-h"><h2>Kết quả theo Part</h2><span>Xanh ≥ 75% · Đỏ &lt; 50%</span></div><div class="bars">${bars}</div></div>`:''}
-   <div class="row"><button class="btn pri" data-act="review">Xem lại đáp án và giải thích</button><button class="btn" data-act="start-confirm">Làm lại từ đầu</button><button class="btn" data-act="home">Trang của đề</button><button class="btn ghost" data-act="lib">Tất cả đề</button></div>
+   <div class="row"><button class="btn pri" data-act="review">Xem lại đáp án và giải thích</button><a class="btn" href="#wrong">Ôn trong Sổ câu sai</a><button class="btn" data-act="start-confirm">Làm lại từ đầu</button><button class="btn" data-act="home">Trang của đề</button><button class="btn ghost" data-act="lib">Tất cả đề</button></div>
   </div>`;
 }
 function modalHTML(){
@@ -413,6 +419,7 @@ function render(keep){
   document.body.classList.toggle('pal-open',UI.pal);
   const app=$('#app');
   if(isVocab()){ if(window.VocabApp)window.VocabApp.render(); return; }
+  if(isWrong()){ if(window.WrongBook){WrongBook.reset();WrongBook.render()} return; }
   if(!UI.test)app.innerHTML=libHTML();
   else if(S.view==='home')app.innerHTML=homeHTML()+modalHTML();
   else if(S.view==='result')app.innerHTML=resultHTML()+modalHTML();
@@ -468,6 +475,7 @@ document.addEventListener('click',e=>{
    case 'pick': {
      const n=+t.dataset.q,i=+t.dataset.i, ans=curAns();
      if(S.kind==='exam'&&ans[n]===i)delete ans[n]; else ans[n]=i;
+     if(S.kind==='practice'&&i!==QN[n].ans&&window.WrongBook)WrongBook.add(UI.test,QN[n]);
      save(); render(true); break; }
    case 'flag': {
      const n=+t.dataset.q,f=S.exam.flags,k=f.indexOf(n); if(k>=0)f.splice(k,1); else f.push(n); save(); render(true); break; }
@@ -489,10 +497,10 @@ addEventListener('keydown',e=>{if(e.key==='Escape'){if(UIP.open){UIP.open=false;
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyPrefs)}catch(e){}
 addEventListener('hashchange',()=>{
   UIP.open=false;paintPrefs();
-  if(isVocab()){stopAudio();clearInterval(tick);UI.pal=false;document.body.classList.remove('pal-open');render();}
+  if(isVocab()||isWrong()){stopAudio();clearInterval(tick);UI.pal=false;document.body.classList.remove('pal-open');render();scrollTo(0,0);}
   else library();
 });
 
-/* ---------- boot ---------- */
-render();
+/* ---------- boot (sau khi vocab.js, wrong.js đã nạp) ---------- */
+if(document.readyState==='loading')addEventListener('DOMContentLoaded',()=>render()); else render();
 })();

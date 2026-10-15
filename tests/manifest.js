@@ -7,7 +7,8 @@ window.MANIFEST = [
   "source": "Tài Liệu Ôn Thi Group",
   "questions": 200,
   "minutes": 120,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 18.9
  },
  {
   "id": "test-02",
@@ -16,7 +17,8 @@ window.MANIFEST = [
   "source": "Tài Liệu Ôn Thi Group",
   "questions": 200,
   "minutes": 120,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 18.6
  },
  {
   "id": "test-03",
@@ -25,7 +27,8 @@ window.MANIFEST = [
   "source": "Tài Liệu Ôn Thi Group",
   "questions": 200,
   "minutes": 120,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 19.0
  },
  {
   "id": "test-04",
@@ -34,7 +37,8 @@ window.MANIFEST = [
   "source": "Tài Liệu Ôn Thi Group",
   "questions": 200,
   "minutes": 120,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 19.0
  },
  {
   "id": "test-05",
@@ -43,7 +47,8 @@ window.MANIFEST = [
   "source": "Tài Liệu Ôn Thi Group",
   "questions": 200,
   "minutes": 120,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 19.2
  },
  {
   "id": "test-06",
@@ -52,7 +57,8 @@ window.MANIFEST = [
   "source": "Tài Liệu Ôn Thi Group",
   "questions": 200,
   "minutes": 120,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 19.8
  },
  {
   "id": "p1-01",
@@ -65,7 +71,8 @@ window.MANIFEST = [
   ],
   "questions": 12,
   "minutes": 5,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 2.3
  },
  {
   "id": "p1-02",
@@ -78,7 +85,8 @@ window.MANIFEST = [
   ],
   "questions": 12,
   "minutes": 5,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 3.0
  },
  {
   "id": "p1-03",
@@ -91,7 +99,8 @@ window.MANIFEST = [
   ],
   "questions": 12,
   "minutes": 5,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 2.5
  },
  {
   "id": "p1-04",
@@ -104,7 +113,8 @@ window.MANIFEST = [
   ],
   "questions": 12,
   "minutes": 5,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 2.5
  },
  {
   "id": "p1-05",
@@ -117,7 +127,8 @@ window.MANIFEST = [
   ],
   "questions": 6,
   "minutes": 3,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 1.5
  },
  {
   "id": "p1-06",
@@ -130,7 +141,8 @@ window.MANIFEST = [
   ],
   "questions": 8,
   "minutes": 4,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 2.1
  },
  {
   "id": "p1-07",
@@ -143,7 +155,8 @@ window.MANIFEST = [
   ],
   "questions": 8,
   "minutes": 4,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 2.0
  },
  {
   "id": "p1-08",
@@ -156,7 +169,8 @@ window.MANIFEST = [
   ],
   "questions": 12,
   "minutes": 5,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 2.7
  },
  {
   "id": "p1-09",
@@ -169,7 +183,8 @@ window.MANIFEST = [
   ],
   "questions": 12,
   "minutes": 5,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 2.8
  },
  {
   "id": "p1-10",
@@ -182,7 +197,8 @@ window.MANIFEST = [
   ],
   "questions": 12,
   "minutes": 6,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 3.3
  },
  {
   "id": "p1-11",
@@ -195,7 +211,8 @@ window.MANIFEST = [
   ],
   "questions": 12,
   "minutes": 6,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 3.4
  },
  {
   "id": "p1-12",
@@ -208,7 +225,8 @@ window.MANIFEST = [
   ],
   "questions": 10,
   "minutes": 4,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 2.1
  },
  {
   "id": "p1-13",
@@ -221,7 +239,8 @@ window.MANIFEST = [
   ],
   "questions": 10,
   "minutes": 5,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 2.6
  },
  {
   "id": "p2-01",
@@ -234,7 +253,8 @@ window.MANIFEST = [
   ],
   "questions": 25,
   "minutes": 8,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 3.5
  },
  {
   "id": "p2-02",
@@ -247,7 +267,8 @@ window.MANIFEST = [
   ],
   "questions": 25,
   "minutes": 8,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 3.5
  },
  {
   "id": "p2-03",
@@ -260,7 +281,8 @@ window.MANIFEST = [
   ],
   "questions": 25,
   "minutes": 9,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 3.6
  },
  {
   "id": "p2-04",
@@ -273,7 +295,8 @@ window.MANIFEST = [
   ],
   "questions": 25,
   "minutes": 9,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 3.6
  },
  {
   "id": "p2-05",
@@ -286,7 +309,8 @@ window.MANIFEST = [
   ],
   "questions": 25,
   "minutes": 9,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 3.6
  },
  {
   "id": "p2-06",
@@ -299,7 +323,8 @@ window.MANIFEST = [
   ],
   "questions": 25,
   "minutes": 9,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 3.6
  },
  {
   "id": "p2-07",
@@ -312,7 +337,8 @@ window.MANIFEST = [
   ],
   "questions": 25,
   "minutes": 8,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 3.5
  },
  {
   "id": "p2-08",
@@ -325,7 +351,8 @@ window.MANIFEST = [
   ],
   "questions": 25,
   "minutes": 9,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 3.6
  },
  {
   "id": "p2-09",
@@ -338,7 +365,8 @@ window.MANIFEST = [
   ],
   "questions": 25,
   "minutes": 9,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 3.6
  },
  {
   "id": "p2-10",
@@ -351,7 +379,8 @@ window.MANIFEST = [
   ],
   "questions": 25,
   "minutes": 9,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 3.6
  },
  {
   "id": "p2-11",
@@ -364,7 +393,8 @@ window.MANIFEST = [
   ],
   "questions": 25,
   "minutes": 9,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 3.7
  },
  {
   "id": "p2-12",
@@ -377,7 +407,8 @@ window.MANIFEST = [
   ],
   "questions": 20,
   "minutes": 7,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 2.9
  },
  {
   "id": "p3-01",
@@ -390,7 +421,8 @@ window.MANIFEST = [
   ],
   "questions": 24,
   "minutes": 10,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 4.2
  },
  {
   "id": "p3-02",
@@ -403,7 +435,8 @@ window.MANIFEST = [
   ],
   "questions": 24,
   "minutes": 11,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 4.5
  },
  {
   "id": "p3-03",
@@ -416,7 +449,8 @@ window.MANIFEST = [
   ],
   "questions": 24,
   "minutes": 10,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 4.4
  },
  {
   "id": "p3-04",
@@ -429,7 +463,8 @@ window.MANIFEST = [
   ],
   "questions": 24,
   "minutes": 11,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 4.5
  },
  {
   "id": "p3-05",
@@ -442,7 +477,8 @@ window.MANIFEST = [
   ],
   "questions": 12,
   "minutes": 6,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 2.5
  },
  {
   "id": "p3-06",
@@ -455,7 +491,8 @@ window.MANIFEST = [
   ],
   "questions": 24,
   "minutes": 10,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 4.4
  },
  {
   "id": "p3-07",
@@ -468,7 +505,8 @@ window.MANIFEST = [
   ],
   "questions": 24,
   "minutes": 11,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 4.6
  },
  {
   "id": "p3-08",
@@ -481,7 +519,8 @@ window.MANIFEST = [
   ],
   "questions": 24,
   "minutes": 10,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 4.4
  },
  {
   "id": "p3-09",
@@ -494,7 +533,8 @@ window.MANIFEST = [
   ],
   "questions": 24,
   "minutes": 11,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 4.6
  },
  {
   "id": "p3-10",
@@ -507,7 +547,8 @@ window.MANIFEST = [
   ],
   "questions": 39,
   "minutes": 18,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 7.6
  },
  {
   "id": "p4-01",
@@ -520,7 +561,8 @@ window.MANIFEST = [
   ],
   "questions": 21,
   "minutes": 9,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 3.8
  },
  {
   "id": "p4-02",
@@ -533,7 +575,8 @@ window.MANIFEST = [
   ],
   "questions": 21,
   "minutes": 9,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 3.8
  },
  {
   "id": "p4-03",
@@ -546,7 +589,8 @@ window.MANIFEST = [
   ],
   "questions": 21,
   "minutes": 10,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 4.1
  },
  {
   "id": "p4-04",
@@ -559,7 +603,8 @@ window.MANIFEST = [
   ],
   "questions": 21,
   "minutes": 9,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 4.0
  },
  {
   "id": "p4-05",
@@ -572,7 +617,8 @@ window.MANIFEST = [
   ],
   "questions": 21,
   "minutes": 10,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 4.3
  },
  {
   "id": "p4-06",
@@ -586,7 +632,8 @@ window.MANIFEST = [
   "questions": 21,
   "audio": false,
   "minutes": 0,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 0.1
  },
  {
   "id": "p4-07",
@@ -599,7 +646,8 @@ window.MANIFEST = [
   ],
   "questions": 21,
   "minutes": 9,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 4.0
  },
  {
   "id": "p4-08",
@@ -612,7 +660,8 @@ window.MANIFEST = [
   ],
   "questions": 21,
   "minutes": 9,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 4.0
  },
  {
   "id": "p4-09",
@@ -625,7 +674,8 @@ window.MANIFEST = [
   ],
   "questions": 21,
   "minutes": 10,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 4.4
  },
  {
   "id": "p4-10",
@@ -638,7 +688,8 @@ window.MANIFEST = [
   ],
   "questions": 30,
   "minutes": 14,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 5.8
  },
  {
   "id": "p5-01",
@@ -651,7 +702,8 @@ window.MANIFEST = [
   ],
   "questions": 14,
   "minutes": 8,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 0.0
  },
  {
   "id": "p5-02",
@@ -664,7 +716,8 @@ window.MANIFEST = [
   ],
   "questions": 14,
   "minutes": 8,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 0.0
  },
  {
   "id": "p5-03",
@@ -677,7 +730,8 @@ window.MANIFEST = [
   ],
   "questions": 14,
   "minutes": 8,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 0.0
  },
  {
   "id": "p5-04",
@@ -690,7 +744,8 @@ window.MANIFEST = [
   ],
   "questions": 14,
   "minutes": 8,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 0.0
  },
  {
   "id": "p5-05",
@@ -703,7 +758,8 @@ window.MANIFEST = [
   ],
   "questions": 14,
   "minutes": 8,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 0.0
  },
  {
   "id": "p5-06",
@@ -716,7 +772,8 @@ window.MANIFEST = [
   ],
   "questions": 14,
   "minutes": 8,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 0.0
  },
  {
   "id": "p5-07",
@@ -729,7 +786,8 @@ window.MANIFEST = [
   ],
   "questions": 14,
   "minutes": 8,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 0.0
  },
  {
   "id": "p5-08",
@@ -742,7 +800,8 @@ window.MANIFEST = [
   ],
   "questions": 14,
   "minutes": 8,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 0.0
  },
  {
   "id": "p5-09",
@@ -755,7 +814,8 @@ window.MANIFEST = [
   ],
   "questions": 14,
   "minutes": 8,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 0.0
  },
  {
   "id": "p5-10",
@@ -768,6 +828,7 @@ window.MANIFEST = [
   ],
   "questions": 14,
   "minutes": 8,
-  "added": "2026-10-14"
+  "added": "2026-10-14",
+  "mb": 0.0
  }
 ];

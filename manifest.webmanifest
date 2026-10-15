@@ -1,0 +1,16 @@
+{
+  "name": "Luyện thi TOEIC",
+  "short_name": "TOEIC",
+  "description": "Thi thử TOEIC có audio, lời giải tiếng Việt, luyện theo Part, sổ câu sai và flashcard từ vựng.",
+  "lang": "vi",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f4ef",
+  "theme_color": "#f5f4ef",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

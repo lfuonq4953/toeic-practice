@@ -307,6 +307,35 @@ kbd{font:500 .7rem var(--mono);border:1px solid currentColor;border-radius:4px;p
 .chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:.3rem .8rem;font-size:.84rem;color:var(--ink2);min-height:2.1rem}
 .chip:hover{border-color:var(--ink3);color:var(--ink)}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+/* ---------- sổ câu sai ---------- */
+.snav a{position:relative}
+.nbadge{display:inline-grid;place-items:center;min-width:1.15rem;height:1.15rem;padding:0 .3rem;border-radius:999px;background:var(--bad);color:#fff;font:700 .66rem/1 var(--sans);margin-left:-.1rem}
+.snav a[aria-current="page"] .nbadge{background:var(--bg);color:var(--ink)}
+.wbbar{display:grid;gap:.55rem}
+.wbbar .lbl{font:600 .66rem/1 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+.wblist{display:grid;gap:1rem}
+.wbq{display:grid;gap:.8rem}
+.wbmeta{display:flex;flex-wrap:wrap;align-items:center;gap:.45rem;font-size:.84rem;color:var(--ink2);padding-bottom:.6rem;border-bottom:1px solid var(--line)}
+.wbsrc{border:0;background:none;padding:0;color:var(--accent);font-weight:600;font-size:.9rem;text-align:left}
+.wbsrc:hover{text-decoration:underline}
+.chip-s{border:1px solid var(--line);border-radius:999px;padding:.1rem .55rem;font-size:.76rem;color:var(--ink2);background:var(--surface2)}
+.chip-s.bad{color:var(--bad);background:var(--bad-soft);border-color:transparent}
+.chip-s.ok{color:var(--ok);background:var(--ok-soft);border-color:transparent}
+.wbd{color:var(--ink3);font-size:.78rem}
+.wbrm{margin-left:auto}
+.wbaudio{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .8rem;font-size:.82rem;color:var(--ink2)}
+.wbaudio audio{height:2.3rem;flex:1;min-width:14rem;max-width:30rem}
+.wbpass{border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface2)}
+.wbpass>summary{cursor:pointer;padding:.6rem .9rem;font-weight:600;font-size:.88rem}
+.wbpass .passage{position:static;max-height:28rem;box-shadow:none;border:0;border-top:1px solid var(--line);border-radius:0 0 var(--r-sm) var(--r-sm)}
+.wbempty b{color:var(--ink);font-size:1.05rem}
+/* ---------- offline ---------- */
+.offrow{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;font-size:.86rem;color:var(--ink2)}
+.offrow .bar{flex:1;min-width:8rem;max-width:16rem;height:6px;border-radius:9px;background:var(--surface2);overflow:hidden}
+.offrow .bar i{display:block;height:100%;background:var(--accent);transition:width .2s}
+.offok{color:var(--ok);font-weight:600}
+.offline-note{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--bg);border-radius:999px;padding:.45rem 1rem;font-size:.84rem;box-shadow:var(--shadow);max-width:calc(100vw - 32px);text-align:center}
+.tcard .off,.scard .off{color:var(--ok);font-size:.74rem;font-weight:600}
 
 /* ---------- từ vựng: trang chủ ---------- */
 .vstats{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.4rem}
@@ -465,6 +494,7 @@ mark{background:var(--warn-soft);color:inherit;border-radius:3px;padding:0 .15em
   .tcard{padding:1rem}
   .tnum{width:2.6rem;height:2.6rem;font-size:1rem}
 }
+@media (max-width:560px){ .snav a:not([aria-current]) span{display:none} .snav a{padding:.5rem .6rem} .wbrm{margin-left:0} }
 @media (max-width:380px){ .snav a span{display:none} .snav a{padding:.5rem .65rem} }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
 @media print{.site,.hdr,.palbtn,.sticky{display:none!important}body{background:#fff}}
